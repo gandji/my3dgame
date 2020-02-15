@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assetpack distributor="MyCompany" name="MyAssetPack" version="1.0">
+    <description>Great Asset Pack</description>
+    <license>No License</license>
+    <assets>
+        <asset categories="" name="secondscene" tags="" type="scene">
+            <description/>
+            <license/>
+        </asset>
+    </assets>
+</assetpack>

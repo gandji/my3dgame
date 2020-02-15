@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.15'
+    id 'application'
+}
+
+group 'org.gandji'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "http://dl.bintray.com/jmonkeyengine/org.jmonkeyengine" }
+}
+
+def jme3 = [v:'3.2.4-stable', g:'org.jmonkeyengine']
+
+dependencies {
+    compile "org.springframework.boot:spring-starter-parent:2.0.1-RELEASE"
+    compile "org.springframework.boot:spring-boot:2.0.1.RELEASE"
+    compile "org.springframework.boot:spring-boot-autoconfigure:2.0.1.RELEASE"
+    compile "org.springframework:spring-context:5.1.10.RELEASE"
+
+    compile "org.projectlombok:lombok:1.18.10"
+
+    compile "com.simsilica:lemur:1.11.0"
+    compile "com.simsilica:lemur-proto:1.10.0"
+
+    compile "${jme3.g}:jme3-testdata:3.3.0-beta1"
+    compile "${jme3.g}:jme3-core:${jme3.v}"
+    compile "${jme3.g}:jme3-terrain:${jme3.v}"
+    compile "${jme3.g}:jme3-bullet:${jme3.v}"
+    compile "${jme3.g}:jme3-bullet-native:${jme3.v}"
+    runtime "${jme3.g}:jme3-desktop:${jme3.v}"
+    runtime "${jme3.g}:jme3-lwjgl:${jme3.v}"
+    runtime "${jme3.g}:jme3-plugins:${jme3.v}"
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+intellij {
+    version '2018.3.4'
+}
+patchPluginXml {
+    changeNotes """
+      Add change notes here.<br>
+      <em>most HTML tags may be used</em>"""
+}
+
+application {
+    mainClassName = 'org.gandji.my3dgame.My3DGame'
+}

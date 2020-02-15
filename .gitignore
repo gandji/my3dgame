@@ -1,0 +1,8 @@
+.gradle/
+build/
+out/
+gradle/
+.idea/
+gradlew*
+*.dll
+*.iml
