@@ -27,7 +27,10 @@ public class My3DGame extends SimpleApplication {
 
     public ConfigurableApplicationContext context;
 
-    public My3DGame(StatsAppState statsAppState, FlyCamAppStateAzerty flyCamAppState, AudioListenerState audioListenerState, DebugKeysAppState debugKeysAppState) {
+    public My3DGame(StatsAppState statsAppState,
+                    FlyCamAppStateAzerty flyCamAppState,
+                    AudioListenerState audioListenerState,
+                    DebugKeysAppState debugKeysAppState) {
         super(statsAppState,flyCamAppState,audioListenerState,debugKeysAppState);
     }
 

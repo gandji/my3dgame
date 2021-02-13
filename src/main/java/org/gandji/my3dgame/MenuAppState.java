@@ -34,6 +34,9 @@ public class MenuAppState extends BaseAppState {
     @Autowired
     FerrariGameState ferrariGameState;
 
+    @Autowired
+    MonksGameState monksGameState;
+
     Container menuWindow;
 
     @Override
@@ -60,6 +63,15 @@ public class MenuAppState extends BaseAppState {
                 my3DGame.getStateManager().attach(ferrariGameState);
             }
         });
+
+        Button monks = new Button("Play Monks");
+        monks.setFontSize(fontSize);
+        menuWindow.addChild(monks);
+        monks.addClickCommands(source -> {
+            my3DGame.getStateManager().detach(MenuAppState.this);
+            my3DGame.getStateManager().attach(monksGameState);
+        });
+
         Button close = new Button("Exit");
         close.setFontSize(fontSize);
         close = menuWindow.addChild(close);
