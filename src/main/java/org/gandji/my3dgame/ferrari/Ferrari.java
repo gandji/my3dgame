@@ -1,4 +1,4 @@
-package org.gandji.my3dgame;
+package org.gandji.my3dgame.ferrari;
 
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
@@ -20,6 +20,8 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import org.gandji.my3dgame.My3DGame;
+import org.gandji.my3dgame.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;

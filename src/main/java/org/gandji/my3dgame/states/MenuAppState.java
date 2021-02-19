@@ -1,11 +1,9 @@
-package org.gandji.my3dgame;
+package org.gandji.my3dgame.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.InputListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.Button;
@@ -13,6 +11,10 @@ import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.style.BaseStyles;
 import lombok.extern.log4j.Log4j;
+import org.gandji.my3dgame.AppCloseListener;
+import org.gandji.my3dgame.My3DGame;
+import org.gandji.my3dgame.ferrari.FerrariGameState;
+import org.gandji.my3dgame.monks.MonksGameState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,7 +60,7 @@ public class MenuAppState extends BaseAppState {
         ferrari.addClickCommands(new Command<Button>() {
             @Override
             public void execute( Button source ) {
-                log.info("Wanna play with the Ferrari?");
+                log.debug("Wanna play with the Ferrari?");
                 my3DGame.getStateManager().detach(MenuAppState.this);
                 my3DGame.getStateManager().attach(ferrariGameState);
             }
@@ -91,7 +93,7 @@ public class MenuAppState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        log.info("Entering menu mode");
+        log.debug("Entering menu mode");
 // Create a simple container for our elements
         my3DGame.getGuiNode().attachChild(menuWindow);
 // put it back:
@@ -104,7 +106,7 @@ public class MenuAppState extends BaseAppState {
 
     @Override
     protected void onDisable() {
-        log.info("Exiting menu mode");
+        log.debug("Exiting menu mode");
         my3DGame.getGuiNode().detachChild(menuWindow);
         my3DGame.getInputManager().deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
 

@@ -18,6 +18,7 @@ import java.util.List;
  * I overwrite some commands to convert to AZERTY
  * and make it a spring managed bean
  */
+@Component
 public class FlyCamAppStateAzerty extends FlyCamAppState {
 
     Application app;

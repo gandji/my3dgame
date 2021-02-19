@@ -35,7 +35,7 @@ public class My3DGameConfiguration {
         settings.put("Height", 720);
         settings.put("Title", "My3DGame");
         settings.put("VSync", true);
-        settings.put("Fullscreen", true);
+        settings.put("Fullscreen", false);
         //Anti-Aliasing
         settings.put("Samples", 4);
         app.setSettings(settings);

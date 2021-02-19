@@ -18,7 +18,7 @@ repositories {
 def jme3 = [v:'3.2.4-stable', g:'org.jmonkeyengine']
 
 dependencies {
-    compile group: "org.springframework.boot", name: "spring-boot-starter-parent", version: "2.0.1-RELEASE", ext: 'pom'
+    compile group: "org.springframework.boot", name: "spring-boot-starter-parent", version: "2.0.1.RELEASE", ext: 'pom'
     compile "org.springframework.boot:spring-boot:2.0.1.RELEASE"
     compile "org.springframework.boot:spring-boot-autoconfigure:2.0.1.RELEASE"
     compile "org.springframework:spring-context:5.1.10.RELEASE"

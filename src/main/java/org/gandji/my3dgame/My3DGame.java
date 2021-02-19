@@ -8,6 +8,7 @@ import com.jme3.font.BitmapFont;
 import com.simsilica.lemur.GuiGlobals;
 import lombok.extern.log4j.Log4j;
 import org.gandji.my3dgame.states.FlyCamAppStateAzerty;
+import org.gandji.my3dgame.states.MenuAppState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContextInitializer;
@@ -18,9 +19,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Log4j
 public class My3DGame extends SimpleApplication {
-
-    @Autowired
-    FerrariGameState ferrariGameState;
 
     @Autowired
     MenuAppState menuAppState;
@@ -37,7 +35,7 @@ public class My3DGame extends SimpleApplication {
     @Override
     public void simpleInitApp() {
 
-        log.info("Starting Spring framework");
+        log.debug("Starting Spring framework");
 
         // spring injection
         ApplicationContextInitializer<GenericApplicationContext> initializer =
@@ -53,17 +51,19 @@ public class My3DGame extends SimpleApplication {
                 .initializers(initializer)
                 .run();
 
+        log.debug("OK Spring Framework done....");
         GuiGlobals.initialize(this);
 // Set 'glass' as the default style when not specified
         GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
 
+        log.debug("Attaching JMonkey menu");
         getStateManager().attach(menuAppState);
 
         setDisplayFps(false);
 
         setDisplayStatView(false);
 
-
+        log.debug("Initialization done...");
     }
 
     public BitmapFont getGuiFont() {

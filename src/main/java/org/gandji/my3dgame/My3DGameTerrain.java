@@ -41,6 +41,7 @@ public class My3DGameTerrain implements ActionListener {
     Node rootNode;
     Camera cam;
 
+    TerrainGenerationType terrainGenerationType = TerrainGenerationType.HEIGHT_MAP;
     TerrainQuad terrain;
     Light light;
 
@@ -53,7 +54,25 @@ public class My3DGameTerrain implements ActionListener {
 
     BitmapText hintText;
 
+    enum TerrainGenerationType {
+        HEIGHT_MAP,
+        SCENE;
+    }
+
     public My3DGameTerrain() {
+    }
+
+    /**
+     * "Ideal" initial position of an object
+     * @return
+     */
+    public Vector3f getInitialPosition() {
+        if (terrainGenerationType==TerrainGenerationType.HEIGHT_MAP) {
+            return new Vector3f(244.5f, 16.212f, 5);
+        } else if (terrainGenerationType==TerrainGenerationType.SCENE) {
+            return new Vector3f(-55.94f, 72.72f, 51.f);
+        }
+        return Vector3f.ZERO;
     }
 
     @PostConstruct
@@ -106,7 +125,8 @@ public class My3DGameTerrain implements ActionListener {
             log.debug(String.format("Loaded scene type %s",firstScene.getClass().getName()));
 
             heightmap = new HillHeightMap(1025, 1000, 50, 100, (byte) 3);
-            //heightmap = new FluidSimHeightMap(1025, 1000);
+
+            // broken: heightmap = new FluidSimHeightMap(1025, 1000);
 
             //heightmap = new ImageBasedHeightMap(heightMapImage.getImage(), 1f);
             heightmap.load();
@@ -125,18 +145,23 @@ public class My3DGameTerrain implements ActionListener {
          * The total size is up to you. At 1025 it ran fine for me (200+FPS), however at
          * size=2049, it got really slow. But that is a jump from 2 million to 8 million triangles...
          */
-        // using height map:
-        /*terrain = new TerrainQuad("terrain", 65, 513, heightmap.getHeightMap());
-        TerrainLodControl control = new TerrainLodControl(terrain, this.cam);
-        control.setLodCalculator( new DistanceLodCalculator(65, 2.7f) ); // patch size, and a multiplier
-        terrain.addControl(control);
-        terrain.setMaterial(matRock);
-        terrain.setLocalTranslation(0, 00, 0);
-        terrain.setLocalScale(2f, 0.5f, 2f);
-        */
 
-        // using scene
-        terrain = (TerrainQuad)firstScene.getChild("terrain-firstScene");
+        // using height map:
+        if (terrainGenerationType == TerrainGenerationType.HEIGHT_MAP) {
+            terrain = new TerrainQuad("terrain", 65, 513, heightmap.getHeightMap());
+            TerrainLodControl control = new TerrainLodControl(terrain, this.cam);
+            control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
+            terrain.addControl(control);
+            terrain.setMaterial(matRock);
+            terrain.setLocalTranslation(0, 00, 0);
+            terrain.setLocalScale(2f, 0.5f, 2f);
+        }
+        else if (terrainGenerationType == TerrainGenerationType.SCENE) {
+
+            // using scene
+            terrain = (TerrainQuad) firstScene.getChild("terrain-firstScene");
+        }
+
         TerrainLodControl lodControl = terrain.getControl(TerrainLodControl.class);
         if (lodControl != null)
             lodControl.setCamera(this.cam);

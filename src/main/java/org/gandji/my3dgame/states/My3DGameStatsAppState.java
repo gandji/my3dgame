@@ -1,4 +1,4 @@
-package org.gandji.my3dgame;
+package org.gandji.my3dgame.states;
 
 import com.jme3.app.StatsAppState;
 import org.springframework.stereotype.Component;
