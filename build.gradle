@@ -24,6 +24,7 @@ dependencies {
     compile "org.springframework:spring-context:5.1.10.RELEASE"
 
     compile "org.projectlombok:lombok:1.18.10"
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
 
     compile "com.simsilica:lemur:1.11.0"
     compile "com.simsilica:lemur-proto:1.10.0"
@@ -35,7 +36,7 @@ dependencies {
     compile "${jme3.g}:jme3-bullet-native:${jme3.v}"
     runtime "${jme3.g}:jme3-desktop:${jme3.v}"
     runtime "${jme3.g}:jme3-lwjgl:${jme3.v}"
-    runtime "${jme3.g}:jme3-plugins:${jme3.v}"
+    compile "${jme3.g}:jme3-plugins:${jme3.v}"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 

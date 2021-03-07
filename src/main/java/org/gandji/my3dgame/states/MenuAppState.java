@@ -15,6 +15,7 @@ import org.gandji.my3dgame.AppCloseListener;
 import org.gandji.my3dgame.My3DGame;
 import org.gandji.my3dgame.ferrari.FerrariGameState;
 import org.gandji.my3dgame.monks.MonksGameState;
+import org.gandji.my3dgame.testq3.TestQ3GameState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,9 @@ public class MenuAppState extends BaseAppState {
 
     @Autowired
     FerrariGameState ferrariGameState;
+
+    @Autowired
+    TestQ3GameState testQ3GameState;
 
     @Autowired
     MonksGameState monksGameState;
@@ -72,6 +76,14 @@ public class MenuAppState extends BaseAppState {
         monks.addClickCommands(source -> {
             my3DGame.getStateManager().detach(MenuAppState.this);
             my3DGame.getStateManager().attach(monksGameState);
+        });
+
+        Button testQ3 = new Button("Play Q3");
+        testQ3.setFontSize(fontSize);
+        menuWindow.addChild(testQ3);
+        testQ3.addClickCommands(source -> {
+            my3DGame.getStateManager().detach(MenuAppState.this);
+            my3DGame.getStateManager().attach(testQ3GameState);
         });
 
         Button close = new Button("Exit");

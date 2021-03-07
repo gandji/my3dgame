@@ -6,7 +6,10 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.input.CameraInput;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseAxisTrigger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import java.util.List;
  * and make it a spring managed bean
  */
 @Component
+@Slf4j
 public class FlyCamAppStateAzerty extends FlyCamAppState {
 
     Application app;
@@ -36,7 +40,9 @@ public class FlyCamAppStateAzerty extends FlyCamAppState {
         this.stateManager = stateManager;
 
         // initialize everything here. when is setEnabled called for AbstractAppState's??
+        log.debug(String.format("Initializing"));
         if (null != app.getInputManager()) {
+            log.debug(String.format("update mappings"));
 
             List<String> updatedMappings = new ArrayList<>();
 
@@ -44,6 +50,9 @@ public class FlyCamAppStateAzerty extends FlyCamAppState {
             updatedMappings.add(updateMapping(CameraInput.FLYCAM_LOWER, KeyInput.KEY_W));
             updatedMappings.add(updateMapping(CameraInput.FLYCAM_STRAFELEFT, KeyInput.KEY_Q));
             updatedMappings.add(updateMapping(CameraInput.FLYCAM_RISE, KeyInput.KEY_A));
+
+            updatedMappings.add(updateMapping(CameraInput.FLYCAM_UP,KeyInput.KEY_DOWN));
+            updatedMappings.add(updateMapping(CameraInput.FLYCAM_DOWN,KeyInput.KEY_UP));
 
             int nMappings = updatedMappings.size();
             // the listener is the camera
@@ -57,5 +66,11 @@ public class FlyCamAppStateAzerty extends FlyCamAppState {
         app.getInputManager().deleteMapping(input);
         app.getInputManager().addMapping(input, new KeyTrigger(key));
         return input;
+    }
+
+    @Override
+    public void cleanup() {
+        super.cleanup();
+        log.debug("Cleaning up");
     }
 }

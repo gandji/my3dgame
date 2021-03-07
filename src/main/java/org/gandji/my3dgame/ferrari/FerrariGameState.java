@@ -26,37 +26,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class FerrariGameState extends My3DGameBaseAppState {
 
-
-    public enum CameraType {
-        CHASE,
-        NODE,
-        FLY;
-
-        public CameraType next() {
-            switch (this) {
-                case CHASE:
-                    return NODE;
-                case NODE:
-                    return CHASE;
-                case FLY:
-                    return FLY;
-                default:
-                    return NODE;
-            }
-        }
-    }
-    static String INPUT_CAMERA_TYPE = "Camera_Type";
-    static String INPUT_CAMERA_TYPE_FLY = "Camera_Type_Fly";
-
     @Autowired
     My3DGameTerrain my3DGameTerrain;
 
     Ferrari ferrari;
-
-    CameraType cameraChaseType = CameraType.CHASE;
-    CameraType oldCameraChaseType = CameraType.FLY;
-    ChaseCamera chaseCamera;
-    CameraNode cameraNode;
 
     @Override
     protected void cleanup(Application app) {
@@ -119,32 +92,8 @@ public class FerrariGameState extends My3DGameBaseAppState {
         //Rotate the camNode to look at the target:
         cameraNode.lookAt(ferrari.getNode().getLocalTranslation().add(Vector3f.UNIT_Y.mult(3.f)), Vector3f.UNIT_Y);
 
-        // chase camera
-        updateCameraType();
         setInputKeys();
 
-    }
-
-    private void updateCameraType() {
-        if (cameraChaseType==CameraType.CHASE) {
-            if (my3DGame.getFlyByCamera()!=null) {
-                my3DGame.getFlyByCamera().setEnabled(false);
-            }
-            cameraNode.setEnabled(false);
-            chaseCamera.setEnabled(true);
-        } else if (cameraChaseType==CameraType.NODE) {
-            if (my3DGame.getFlyByCamera()!=null) {
-                my3DGame.getFlyByCamera().setEnabled(false);
-            }
-            cameraNode.setEnabled(true);
-            chaseCamera.setEnabled(false);
-        } else if (cameraChaseType==CameraType.FLY) {
-            if (my3DGame.getFlyByCamera()!=null) {
-                my3DGame.getFlyByCamera().setEnabled(true);
-                cameraNode.setEnabled(false);
-                chaseCamera.setEnabled(false);
-            }
-        }
     }
 
     @Override
@@ -155,24 +104,10 @@ public class FerrariGameState extends My3DGameBaseAppState {
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
+        super.onAction(name,isPressed,tpf);
         if (name.equals(SimpleApplication.INPUT_MAPPING_EXIT)) {
             log.debug("Wanna stop playing with the Ferraris?...OK");
             backToMenu();
-        }
-        if (isPressed && name.equals(INPUT_CAMERA_TYPE)) {
-            if (cameraChaseType != CameraType.FLY) {
-                cameraChaseType = cameraChaseType.next();
-            } else {
-                cameraChaseType = oldCameraChaseType;
-            }
-            updateCameraType();
-        }
-        if (isPressed && name.equals(INPUT_CAMERA_TYPE_FLY)) {
-            if (cameraChaseType != CameraType.FLY) {
-                oldCameraChaseType = cameraChaseType;
-                cameraChaseType = cameraChaseType.FLY;
-                updateCameraType();
-            }
         }
     }
 

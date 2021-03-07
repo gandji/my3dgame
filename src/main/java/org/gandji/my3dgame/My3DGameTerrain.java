@@ -41,7 +41,7 @@ public class My3DGameTerrain implements ActionListener {
     Node rootNode;
     Camera cam;
 
-    TerrainGenerationType terrainGenerationType = TerrainGenerationType.HEIGHT_MAP;
+    TerrainGenerationType terrainGenerationType = TerrainGenerationType.SCENE;
     TerrainQuad terrain;
     Light light;
 
@@ -89,9 +89,6 @@ public class My3DGameTerrain implements ActionListener {
         // ALPHA map (for splat textures)
         matRock.setTexture("Alpha", this.assetManager.loadTexture("Textures/Terrain/splat/alphamap.png"));
 
-        // HEIGHTMAP image (for the terrain heightmap)
-        Texture heightMapImage = this.assetManager.loadTexture("Textures/Terrain/splat/mountains512.png");
-
         // GRASS texture
         Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
         grass.setWrap(Texture.WrapMode.Repeat);
@@ -115,40 +112,49 @@ public class My3DGameTerrain implements ActionListener {
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
 
-        // CREATE HEIGHTMAP
-        AbstractHeightMap heightmap = null;
         Node firstScene = null;
         try {
 
             firstScene = (Node)assetManager.loadModel("MyAssetPack/assets/firstScene.j3o");
 
             log.debug(String.format("Loaded scene type %s",firstScene.getClass().getName()));
-
-            heightmap = new HillHeightMap(1025, 1000, 50, 100, (byte) 3);
-
-            // broken: heightmap = new FluidSimHeightMap(1025, 1000);
-
-            //heightmap = new ImageBasedHeightMap(heightMapImage.getImage(), 1f);
-            heightmap.load();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        heightmap.smooth(0.9f,2);
-        /*
-         * Here we create the actual terrain. The tiles will be 65x65, and the total size of the
-         * terrain will be 513x513. It uses the heightmap we created to generate the height values.
-         */
-        /**
-         * Optimal terrain patch size is 65 (64x64).
-         * The total size is up to you. At 1025 it ran fine for me (200+FPS), however at
-         * size=2049, it got really slow. But that is a jump from 2 million to 8 million triangles...
-         */
-
         // using height map:
         if (terrainGenerationType == TerrainGenerationType.HEIGHT_MAP) {
-            terrain = new TerrainQuad("terrain", 65, 513, heightmap.getHeightMap());
+            // CREATE HEIGHTMAP
+            AbstractHeightMap heightmap = null;
+
+            try {
+                // three ways to compute the height map
+                // 1) heightmap = new HillHeightMap(1025, 1000, 50, 100, (byte) 3);
+
+                // 2) heightmap = new FluidSimHeightMap(1025, 1000);
+
+                // 3) with a height map image
+                Texture heightMapImage = this.assetManager.loadTexture("Textures/Terrain/splat/mountains512.png");
+                heightmap = new ImageBasedHeightMap(heightMapImage.getImage(), 1f);
+
+                heightmap.load();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            heightmap.smooth(0.9f,2);
+            /*
+             * Here we create the actual terrain. The tiles will be 65x65, and the total size of the
+             * terrain will be 513x513. It uses the height map we created to generate the height values.
+             */
+            /**
+             * Optimal terrain patch size is 65 (64x64).
+             * The total size is up to you. At 1025 it ran fine for me (200+FPS), however at
+             * size=2049, it got really slow. But that is a jump from 2 million to 8 million triangles...
+             */
+
+            terrain = new TerrainQuad("terrain", 65,  1025, heightmap.getHeightMap());
             TerrainLodControl control = new TerrainLodControl(terrain, this.cam);
             control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
             terrain.addControl(control);
