@@ -44,7 +44,6 @@ public class Ferrari implements ActionListener {
     Spatial spatial;
     Node node;
 
-
     Vector3f initialPosition;
 
     float stiffness = 20.f; //120.0f;//200=f1 car
@@ -58,12 +57,16 @@ public class Ferrari implements ActionListener {
     private float steeringValue = 0;
     private float accelerationValue = 0;
 
+    boolean assetsLoaded = false;
+
     public Ferrari() {
     }
 
-    @PostConstruct
-    public void construct() {
+    public void loadAssets() {
 
+        if (assetsLoaded) {
+            return;
+        }
 
         // y is up, x is left, z is backward for ferrari
         spatial = my3DGame.getAssetManager().loadModel("Models/Ferrari/Car.scene");
@@ -143,6 +146,7 @@ public class Ferrari implements ActionListener {
         ferrariLight3.setName("Ferrari3");
         getSpatial().addLight(ferrariLight3);
 
+        assetsLoaded = true;
     }
 
     public void setupKeys(InputManager inputManager) {

@@ -4,7 +4,6 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -14,10 +13,11 @@ import com.jme3.scene.control.CameraControl;
 import com.jme3.util.SkyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.*;
-import org.gandji.my3dgame.states.MenuAppState;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Created by gandji on 19/01/2020.
@@ -29,6 +29,7 @@ public class FerrariGameState extends My3DGameBaseAppState {
     @Autowired
     My3DGameTerrain my3DGameTerrain;
 
+    @Autowired
     Ferrari ferrari;
 
     @Override
@@ -45,14 +46,15 @@ public class FerrariGameState extends My3DGameBaseAppState {
         // thjis is the test world with a floor and some boxes
         //PhysicsHelper.createPhysicsTestWorld(my3DGame.getRootNode(), my3DGame.getAssetManager(), bulletAppState.getPhysicsSpace());
 
+        my3DGameTerrain.loadAssets();
+
         // the sky
         my3DGame.getRootNode().attachChild(SkyFactory.createSky(my3DGame.getAssetManager(), "Textures/Sky/Bright/BrightSky.dds", SkyFactory.EnvMapType.CubeMap));
 
         my3DGame.getRootNode().attachChild(my3DGameTerrain.getTerrain());
         bulletAppState.getPhysicsSpace().add(my3DGameTerrain.getTerrain());
 
-        // I cannot autowire the ferrari, investigate!
-        ferrari = applicationContext.getBean(Ferrari.class);
+        ferrari.loadAssets();
         ferrari.setupKeys(my3DGame.getInputManager());
 
         my3DGame.getRootNode().attachChild(ferrari.getNode());
@@ -62,7 +64,9 @@ public class FerrariGameState extends My3DGameBaseAppState {
         // test playground ferrari.setInitialPosition(Vector3f.ZERO);
         ferrari.resetPosition();
 
+        // the second ferrari is not autowired!
         Ferrari ferrari2 =  applicationContext.getBean(Ferrari.class);
+        ferrari2.loadAssets();
         my3DGame.getRootNode().attachChild(ferrari2.getNode());
         ferrari2.setInitialPosition(ferrari.initialPosition.add(10.f, 0.f, 0.f));
         ferrari2.resetPosition();
@@ -70,12 +74,6 @@ public class FerrariGameState extends My3DGameBaseAppState {
         Camera cam = my3DGame.getCamera();
         cam.setLocation(new Vector3f(239.03987f, 25.607182f, 22.808495f));
         cam.setRotation(new Quaternion(0.006459943f, 0.98668134f, -0.15741317f, 0.040488426f));
-
-        //cam.setLocation(new Vector3f(43.514324f, 3.0221524f, -6.3544216f));
-        //cam.setRotation(new Quaternion(0.051979125f, -0.76097894f, 0.061444007f, 0.64376533f));
-
-        //cam.setLocation(new Vector3f(47.320509f, 172.88202f, 0.0f));
-        //cam.setRotation(new Quaternion(0.0044328505f, -0.5626967f, 0.0030236053f, 0.82664603f));
 
         chaseCamera = new ChaseCamera(my3DGame.getCamera(), ferrari.getSpatial(), my3DGame.getInputManager());
         chaseCamera.setSmoothMotion(true);

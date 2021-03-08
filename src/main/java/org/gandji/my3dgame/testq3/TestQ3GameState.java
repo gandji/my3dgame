@@ -7,8 +7,6 @@ import com.jme3.asset.plugins.ZipLocator;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.objects.PhysicsCharacter;
-import com.jme3.input.CameraInput;
-import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
@@ -16,9 +14,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.MaterialList;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.CameraNode;
 import com.jme3.scene.Node;
-import com.jme3.scene.control.CameraControl;
 import com.jme3.scene.plugins.ogre.OgreMeshKey;
 import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
@@ -27,8 +23,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @Slf4j

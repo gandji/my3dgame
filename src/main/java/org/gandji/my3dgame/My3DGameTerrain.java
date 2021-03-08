@@ -17,8 +17,6 @@ import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
-import com.jme3.terrain.heightmap.FluidSimHeightMap;
-import com.jme3.terrain.heightmap.HillHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +39,7 @@ public class My3DGameTerrain implements ActionListener {
     Node rootNode;
     Camera cam;
 
-    TerrainGenerationType terrainGenerationType = TerrainGenerationType.SCENE;
+    TerrainGenerationType terrainGenerationType = TerrainGenerationType.HEIGHT_MAP;
     TerrainQuad terrain;
     Light light;
 
@@ -75,13 +73,16 @@ public class My3DGameTerrain implements ActionListener {
         return Vector3f.ZERO;
     }
 
-    @PostConstruct
-    public void construct() {
-
+    public void loadAssets() {
         this.assetManager = my3DGame.getAssetManager();
         this.rootNode = my3DGame.getRootNode();
         this.cam = my3DGame.getCamera();
+        loadMaterials();
+        loadScene();
+        bindMappings();
+    }
 
+    private void loadMaterials() {
         // TERRAIN TEXTURE material
         matRock = new Material(this.assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
         matRock.setBoolean("useTriPlanarMapping", false);
@@ -111,7 +112,9 @@ public class My3DGameTerrain implements ActionListener {
         matWire = new Material(this.assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
+    }
 
+    private void loadScene() {
         Node firstScene = null;
         try {
 
@@ -179,7 +182,9 @@ public class My3DGameTerrain implements ActionListener {
         light = new DirectionalLight();
         ((DirectionalLight)light).setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
         terrain.addLight(light);
+    }
 
+    private void bindMappings() {
         my3DGame.getInputManager().addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
         my3DGame.getInputManager().addListener(this, "wireframe");
         my3DGame.getInputManager().addMapping("triPlanar", new KeyTrigger(KeyInput.KEY_P));
