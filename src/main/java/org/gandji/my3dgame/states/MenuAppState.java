@@ -2,9 +2,11 @@ package org.gandji.my3dgame.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.state.AppState;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.math.ColorRGBA;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;
@@ -14,6 +16,7 @@ import lombok.extern.log4j.Log4j;
 import org.gandji.my3dgame.AppCloseListener;
 import org.gandji.my3dgame.My3DGame;
 import org.gandji.my3dgame.ferrari.FerrariGameState;
+import org.gandji.my3dgame.hellocollision.HelloCollisionAppState;
 import org.gandji.my3dgame.monks.MonksGameState;
 import org.gandji.my3dgame.testq3.TestQ3GameState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +45,9 @@ public class MenuAppState extends BaseAppState {
 
     @Autowired
     MonksGameState monksGameState;
+
+    @Autowired
+    private HelloCollisionAppState helloCollisionAppState;
 
     Container menuWindow;
 
@@ -86,6 +92,14 @@ public class MenuAppState extends BaseAppState {
             my3DGame.getStateManager().attach(testQ3GameState);
         });
 
+        Button helloCollision = new Button("Play Hello Collision");
+        helloCollision.setFontSize(fontSize);
+        menuWindow.addChild(helloCollision);
+        helloCollision.addClickCommands(source -> {
+            my3DGame.getStateManager().detach(MenuAppState.this);
+            my3DGame.getStateManager().attach(helloCollisionAppState);
+        });
+
         Button close = new Button("Exit");
         close.setFontSize(fontSize);
         close = menuWindow.addChild(close);
@@ -108,6 +122,7 @@ public class MenuAppState extends BaseAppState {
         log.debug("Entering menu mode");
 // Create a simple container for our elements
         my3DGame.getGuiNode().attachChild(menuWindow);
+        my3DGame.getViewPort().setBackgroundColor(new ColorRGBA(0.0f, 0.0f, 0f, 1f));
 // put it back:
         //if (my3DGame.getInputManager().hasMapping(SimpleApplication.INPUT_MAPPING_EXIT))
           //  my3DGame.getInputManager().deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
