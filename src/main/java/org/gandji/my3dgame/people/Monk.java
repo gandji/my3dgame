@@ -1,5 +1,7 @@
 package org.gandji.my3dgame.people;
 
+import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -44,6 +46,21 @@ public class Monk implements Person, Drawable {
     @Override
     public Health getHealth() {
         return health;
+    }
+
+    @Override
+    public BetterCharacterControl getControl() {
+        return null;
+    }
+
+    @Override
+    public void setPosition(Vector3f worldPosition) {
+
+    }
+
+    @Override
+    public Vector3f getPosition() {
+        return null;
     }
 
     // Drawable

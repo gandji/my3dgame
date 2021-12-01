@@ -2,11 +2,11 @@ package org.gandji.my3dgame.testq3;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.ModelKey;
 import com.jme3.asset.plugins.HttpZipLocator;
 import com.jme3.asset.plugins.ZipLocator;
-import com.jme3.bullet.collision.shapes.SphereCollisionShape;
+import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.objects.PhysicsCharacter;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
@@ -17,6 +17,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.plugins.ogre.OgreMeshKey;
 import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.people.Person;
+import org.gandji.my3dgame.people.Zombie;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -29,14 +31,21 @@ import java.io.IOException;
 public class TestQ3GameState extends My3DGameBaseAppState {
 
     private Node gameLevel;
-    private PhysicsCharacter player;
+    private BetterCharacterControl playerControl;
     private Vector3f walkDirection = new Vector3f();
     private boolean left=false,right=false,up=false,down=false;
 
     float directionalBrightness = 2.0f;
     DirectionalLight directionalLight;
+    float directionalBrightness2 = 2.0f;
+    DirectionalLight directionalLight2;
     float ambientBrightness = 2.0f;
     AmbientLight ambientLight;
+
+
+    Node customScene;
+    ModelKey customModelKey;
+    private Node playerNode;
 
     @Override
     protected void initialize(Application app) {
@@ -46,8 +55,16 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         directionalLight.setColor(ColorRGBA.White.clone().multLocal(directionalBrightness));
         directionalLight.setDirection(new Vector3f(-1, -1, -1).normalize());
 
+        directionalLight2 = new DirectionalLight();
+        directionalLight2.setColor(ColorRGBA.White.clone().multLocal(directionalBrightness2));
+        directionalLight2.setDirection(new Vector3f(1, 1, 0.3f).normalize());
+
         ambientLight = new AmbientLight();
         ambientLight.setColor(ColorRGBA.White.mult(ambientBrightness));
+
+        customModelKey = new ModelKey("Models/vaisseau1.glb");
+        customScene = (Node) my3DGame.getAssetManager().loadModel(customModelKey);
+
     }
 
     @Override
@@ -56,6 +73,14 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         super.onEnable();
 
         log.info("Loading test Q3");
+
+        playerControl = new BetterCharacterControl( 1.f, 5.f, 50.f);
+        playerControl.setJumpForce(new Vector3f(0.f,10.f,0.f));
+        playerControl.setGravity(new Vector3f(0f,-10.f,0f));
+
+        playerNode = new Node("player");
+        playerNode.addControl(playerControl);
+        playerControl.setSpatial(playerNode);
 
         boolean useHttp = false;
 
@@ -76,42 +101,55 @@ public class TestQ3GameState extends My3DGameBaseAppState {
 
         my3DGame.getRootNode().addLight(directionalLight);
 
+        my3DGame.getRootNode().addLight(directionalLight2);
+
         my3DGame.getRootNode().addLight(ambientLight);
 
         // load the level from zip or http zip
-        if (useHttp) {
-            log.debug("Loading Quake level from net");
-            my3DGame.getAssetManager().registerLocator(
-                    "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/jmonkeyengine/quake3level.zip",
-                    HttpZipLocator.class);
-        } else {
-            log.debug("Loading Quake level from local resources");
-            my3DGame.getAssetManager().registerLocator("quake3level.zip", ZipLocator.class);
-        }
+        if (customScene==null) {
+            if (useHttp) {
+                log.debug("Loading Quake level from net");
+                my3DGame.getAssetManager().registerLocator(
+                        "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/jmonkeyengine/quake3level.zip",
+                        HttpZipLocator.class);
+            } else {
+                log.debug("Loading Quake level from local resources");
+                my3DGame.getAssetManager().registerLocator("quake3level.zip", ZipLocator.class);
+            }
 
-        // create the geometry and attach it
-        log.debug("Loading the scene, please wait...");
-        MaterialList matList = (MaterialList) my3DGame.getAssetManager().loadAsset("Scene.material");
-        log.debug("Loading the mesh, please wait....");
-        com.jme3.scene.plugins.ogre.OgreMeshKey key = new OgreMeshKey("main.meshxml", matList);
-        gameLevel = (Node) my3DGame.getAssetManager().loadAsset(key);
-        gameLevel.setLocalScale(0.1f);
+            // create the geometry and attach it
+            log.debug("Loading the scene, please wait...");
+            MaterialList matList = (MaterialList) my3DGame.getAssetManager().loadAsset("Scene.material");
+            log.debug("Loading the mesh, please wait....");
+            com.jme3.scene.plugins.ogre.OgreMeshKey key = new OgreMeshKey("main.meshxml", matList);
+            gameLevel = (Node) my3DGame.getAssetManager().loadAsset(key);
+            gameLevel.setLocalScale(0.1f);
+            playerControl.warp(new Vector3f(60, 10, -60));
+        } else {
+            gameLevel = (Node) my3DGame.getAssetManager().loadAsset(customModelKey);
+            gameLevel.setLocalScale(3f);
+            my3DGame.getRootNode().attachChild(gameLevel);
+            //playerNode.setLocalTranslation(new Vector3f(0, 10, -40));
+            playerControl.warp(new Vector3f(0, 10, -40));
+        }
         log.debug("OK ... loaded");
 
         // add a physics control, it will generate a MeshCollisionShape based on the gameLevel
         gameLevel.addControl(new RigidBodyControl(0));
 
-        player = new PhysicsCharacter(new SphereCollisionShape(5), .1f);
-        player.setJumpSpeed(70);
-        player.setFallSpeed(55);
-        player.setGravity(new Vector3f(0f,-1f,0f));
-
-        player.setPhysicsLocation(new Vector3f(60, 10, -60));
 
         my3DGame.getRootNode().attachChild(gameLevel);
 
         bulletAppState.getPhysicsSpace().addAll(gameLevel);
-        bulletAppState.getPhysicsSpace().add(player);
+
+        bulletAppState.getPhysicsSpace().add(playerControl);
+        bulletAppState.getPhysicsSpace().addAll(playerNode);
+        my3DGame.getRootNode().attachChild(playerNode);
+
+        Person zombie = applicationContext.getBean(Zombie.class);
+        zombie.setPosition( new Vector3f(4.f,2.f,2.f));
+        bulletAppState.getPhysicsSpace().add(zombie.getControl());
+        my3DGame.getRootNode().attachChild(zombie.getSpatial());
 
         setInputKeys();
     }
@@ -124,11 +162,17 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         my3DGame.getRootNode().getWorldLightList().clear();
     }
 
+    /**
+     *  pfff, not like this.
+     * TODO use controls to set walk direction and speed of the player control!
+     * @param tpf
+     */
     @Override
     public void update(float tpf) {
         super.update(tpf);
-        Vector3f camDir = my3DGame.getCamera().getDirection().clone().multLocal(0.6f);
-        Vector3f camLeft = my3DGame.getCamera().getLeft().clone().multLocal(0.4f);
+        float velocity = 10f;//playerControl.getVelocity().length();
+        Vector3f camDir = my3DGame.getCamera().getDirection().clone().multLocal(velocity);
+        Vector3f camLeft = my3DGame.getCamera().getLeft().clone().multLocal(velocity);
         walkDirection.set(0,0,0);
         if(left)
             walkDirection.addLocal(camLeft);
@@ -138,8 +182,8 @@ public class TestQ3GameState extends My3DGameBaseAppState {
             walkDirection.addLocal(camDir);
         if(down)
             walkDirection.addLocal(camDir.negate());
-        player.setWalkDirection(walkDirection);
-        my3DGame.getCamera().setLocation(player.getPhysicsLocation());
+        playerControl.setWalkDirection(walkDirection);
+        my3DGame.getCamera().setLocation(new Vector3f(0.f,3.f,0.f).addLocal(playerNode.getWorldTranslation()));
     }
 
     @Override
@@ -170,7 +214,7 @@ public class TestQ3GameState extends My3DGameBaseAppState {
             else
                 down=false;
         } else if (name.equals("Space")) {
-            player.jump(Vector3f.UNIT_Y);
+            playerControl.jump();
         }
     }
 

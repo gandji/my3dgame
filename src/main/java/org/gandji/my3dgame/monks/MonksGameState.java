@@ -18,13 +18,14 @@ import com.jme3.scene.CameraNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.CameraControl;
 import lombok.extern.slf4j.Slf4j;
-import org.gandji.my3dgame.ferrari.FerrariGameState;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class MonksGameState extends My3DGameBaseAppState implements ActionListener {
+
+    Node monk;
 
     @Override
     protected void initialize(Application app) {
@@ -35,7 +36,7 @@ public class MonksGameState extends My3DGameBaseAppState implements ActionListen
         my3DGame.getRootNode().attachChild(arche);
 
         ModelKey keyMonk = new ModelKey("Models/monk.glb");
-        Node monk = (Node) my3DGame.getAssetManager().loadModel(keyMonk);
+        monk = (Node) my3DGame.getAssetManager().loadModel(keyMonk);
 
         my3DGame.getRootNode().attachChild(monk);
 

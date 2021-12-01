@@ -10,4 +10,8 @@ public class Health {
         this.currentHealth = health;
         this.healthMax = healthMax;
     }
+
+    public void setPerson(Person person) {
+        this.character = person;
+    }
 }
