@@ -1,4 +1,4 @@
-package org.gandji.my3dgame.people;
+package org.gandji.my3dgame.objects;
 
 import com.jme3.scene.Spatial;
 

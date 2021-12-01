@@ -1,6 +1,7 @@
-package org.gandji.my3dgame.people;
+package org.gandji.my3dgame.objects.people;
 
 import com.jme3.asset.ModelKey;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.light.Light;
 import com.jme3.light.PointLight;
@@ -10,6 +11,7 @@ import com.jme3.scene.Spatial;
 import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.My3DGame;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -20,38 +22,58 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class Zombie implements Person {
 
-    BetterCharacterControl zombieControl = null;
+    BehaviorController zombiePhysics;
+
     Node zombieNode;
     Health health;
-    Vector3f position;
-    Vector3f speed;
+
+    private final float mass = 90.f;
 
     @Autowired
     private My3DGame my3DGame;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private BulletAppState bulletAppState;
+
     @PostConstruct
     public void initialize() {
 
-        zombieControl = new BetterCharacterControl( 1.5f, 3.f, 90.f);
-        //zombieCharacter.setJumpSpeed(50);
-        //zombieCharacter.setFallSpeed(30);
-        zombieControl.setGravity(new Vector3f(0.f,-9.81f,0.f));
-
         ModelKey keyMonk = new ModelKey("Models/monk.glb");
         zombieNode = (Node) my3DGame.getAssetManager().loadModel(keyMonk);
-        //zombieCharacter.setSpatial(zombieNode);
-        zombieNode.addControl(zombieControl);
 
         health = new Health(100L,100L);
         health.setPerson(this);
 
+        zombiePhysics = applicationContext.getBean(BehaviorController.class,this, 4);
+        zombiePhysics.setGravity(new Vector3f(0.f, -9.81f, 0.f));
+        zombiePhysics.setPhysicsDamping(0.5f);
+        zombieNode.addControl(zombiePhysics);
+        bulletAppState.getPhysicsSpace().add(zombiePhysics);
+
         Light pointLight = new PointLight();
-        //pointLight.setColor(ColorRGBA.Yellow);
         ((PointLight) pointLight).setPosition(new Vector3f(4,4,4));
         ((PointLight) pointLight).setRadius(125.f);
         pointLight.setName("Zombida");
         zombieNode.addLight(pointLight);
 
+    }
+
+    public void setBehaviorController(BehaviorController behaviorController) {
+
+        if (zombiePhysics!=null) {
+            zombieNode.removeControl(zombiePhysics);
+            bulletAppState.getPhysicsSpace().remove(zombiePhysics);
+            zombiePhysics = null;
+        }
+
+        if (behaviorController!=null) {
+            this.zombiePhysics = behaviorController;
+            zombieNode.addControl(zombiePhysics);
+            bulletAppState.getPhysicsSpace().add(zombiePhysics);
+        }
     }
 
     @Override
@@ -71,7 +93,7 @@ public class Zombie implements Person {
 
     @Override
     public BetterCharacterControl getControl() {
-        return zombieControl;
+        return zombiePhysics;
     }
 
     @Override
@@ -87,5 +109,17 @@ public class Zombie implements Person {
     @Override
     public Spatial getSpatial() {
         return zombieNode;
+    }
+
+    public void setTarget(Node target) {
+        if (this.zombiePhysics!=null) {
+            this.zombiePhysics.setTarget(target);
+        }
+    }
+
+    public void setVelocity(float velocity) {
+        if (this.zombiePhysics!=null) {
+            this.zombiePhysics.setVelocity(velocity);
+        }
     }
 }

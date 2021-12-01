@@ -1,4 +1,4 @@
-package org.gandji.my3dgame.people;
+package org.gandji.my3dgame.objects.people;
 
 public enum Role {
     MONK,

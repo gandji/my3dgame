@@ -109,9 +109,12 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
     }
 
     protected void backToMenu() {
-        my3DGame.getRootNode().detachAllChildren();
-        my3DGame.getStateManager().detach(this);
-        my3DGame.getStateManager().attach(menuAppState);
+        // nope, just exit, because input controls are messed up!
+        // i did not manage to clear input controls between games TODO
+        //my3DGame.getRootNode().detachAllChildren();
+        //my3DGame.getStateManager().detach(this);
+        //my3DGame.getStateManager().attach(menuAppState);
+        my3DGame.stop();
     }
     private void updateCameraType() {
         /* FIXME common part of cameras?? */

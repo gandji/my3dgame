@@ -1,8 +1,10 @@
-package org.gandji.my3dgame.people;
+package org.gandji.my3dgame.objects.people;
 
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
+import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.objects.Drawable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,7 @@ import javax.annotation.PostConstruct;
 
 @Component
 @Scope("prototype")
+@Slf4j
 public class Monk implements Person, Drawable {
 
     private static final Role ROLE = Role.MONK;
@@ -68,4 +71,5 @@ public class Monk implements Person, Drawable {
     public Spatial getSpatial() {
         return monkNode;
     }
+
 }

@@ -17,8 +17,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.plugins.ogre.OgreMeshKey;
 import lombok.extern.slf4j.Slf4j;
-import org.gandji.my3dgame.people.Person;
-import org.gandji.my3dgame.people.Zombie;
+import org.gandji.my3dgame.objects.people.Zombie;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -32,7 +31,6 @@ public class TestQ3GameState extends My3DGameBaseAppState {
 
     private Node gameLevel;
     private BetterCharacterControl playerControl;
-    private Vector3f walkDirection = new Vector3f();
     private boolean left=false,right=false,up=false,down=false;
 
     float directionalBrightness = 2.0f;
@@ -75,12 +73,10 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         log.info("Loading test Q3");
 
         playerControl = new BetterCharacterControl( 1.f, 5.f, 50.f);
-        playerControl.setJumpForce(new Vector3f(0.f,10.f,0.f));
         playerControl.setGravity(new Vector3f(0f,-10.f,0f));
 
         playerNode = new Node("player");
         playerNode.addControl(playerControl);
-        playerControl.setSpatial(playerNode);
 
         boolean useHttp = false;
 
@@ -130,7 +126,7 @@ public class TestQ3GameState extends My3DGameBaseAppState {
             gameLevel.setLocalScale(3f);
             my3DGame.getRootNode().attachChild(gameLevel);
             //playerNode.setLocalTranslation(new Vector3f(0, 10, -40));
-            playerControl.warp(new Vector3f(0, 10, -40));
+            playerControl.warp(new Vector3f(0, 3, -40));
         }
         log.debug("OK ... loaded");
 
@@ -146,9 +142,9 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         bulletAppState.getPhysicsSpace().addAll(playerNode);
         my3DGame.getRootNode().attachChild(playerNode);
 
-        Person zombie = applicationContext.getBean(Zombie.class);
+        Zombie zombie = applicationContext.getBean(Zombie.class);
         zombie.setPosition( new Vector3f(4.f,2.f,2.f));
-        bulletAppState.getPhysicsSpace().add(zombie.getControl());
+        zombie.setTarget(playerNode);
         my3DGame.getRootNode().attachChild(zombie.getSpatial());
 
         setInputKeys();
@@ -163,26 +159,26 @@ public class TestQ3GameState extends My3DGameBaseAppState {
     }
 
     /**
-     *  pfff, not like this.
-     * TODO use controls to set walk direction and speed of the player control!
      * @param tpf
      */
     @Override
     public void update(float tpf) {
         super.update(tpf);
-        float velocity = 10f;//playerControl.getVelocity().length();
-        Vector3f camDir = my3DGame.getCamera().getDirection().clone().multLocal(velocity);
+        float velocity = 10f;
+        Vector3f camDir = my3DGame.getCamera().getDirection().clone();
+        camDir.y = camDir.y -camDir.dot(Vector3f.UNIT_Y);
+        camDir = camDir.normalize().multLocal(velocity);
         Vector3f camLeft = my3DGame.getCamera().getLeft().clone().multLocal(velocity);
-        walkDirection.set(0,0,0);
-        if(left)
-            walkDirection.addLocal(camLeft);
-        if(right)
-            walkDirection.addLocal(camLeft.negate());
-        if(up)
-            walkDirection.addLocal(camDir);
-        if(down)
-            walkDirection.addLocal(camDir.negate());
-        playerControl.setWalkDirection(walkDirection);
+        Vector3f newWalkDirection = new Vector3f();
+        if (left)
+            newWalkDirection.addLocal(camLeft);
+        if (right)
+            newWalkDirection.addLocal(camLeft.negate());
+        if (up)
+            newWalkDirection.addLocal(camDir);
+        if (down)
+            newWalkDirection.addLocal(camDir.negate());
+        playerControl.setWalkDirection(newWalkDirection);
         my3DGame.getCamera().setLocation(new Vector3f(0.f,3.f,0.f).addLocal(playerNode.getWorldTranslation()));
     }
 
