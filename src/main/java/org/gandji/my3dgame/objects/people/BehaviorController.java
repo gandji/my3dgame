@@ -58,6 +58,7 @@ public class BehaviorController extends BetterCharacterControl {
 
         desiredVelocity = desiredVelocity.mult(velocity);
 
+        node.getControl().setViewDirection(desiredVelocity);
         node.getControl().setWalkDirection(desiredVelocity);
 
         super.update(tpf);
