@@ -37,11 +37,9 @@ public class TestQ3GameState extends My3DGameBaseAppState {
     DirectionalLight directionalLight;
     float directionalBrightness2 = 2.0f;
     DirectionalLight directionalLight2;
-    float ambientBrightness = 2.0f;
+    float ambientBrightness = 1.2f;
     AmbientLight ambientLight;
 
-
-    Node customScene;
     ModelKey customModelKey;
     private Node playerNode;
 
@@ -60,8 +58,15 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         ambientLight = new AmbientLight();
         ambientLight.setColor(ColorRGBA.White.mult(ambientBrightness));
 
+        my3DGame.getRootNode().addLight(directionalLight);
+
+        my3DGame.getRootNode().addLight(directionalLight2);
+
+        my3DGame.getRootNode().addLight(ambientLight);
+
         customModelKey = new ModelKey("Models/vaisseau1.glb");
-        customScene = (Node) my3DGame.getAssetManager().loadModel(customModelKey);
+        gameLevel = (Node) my3DGame.getAssetManager().loadAsset(customModelKey);
+        gameLevel.setLocalScale(3f);
 
     }
 
@@ -96,14 +101,8 @@ public class TestQ3GameState extends My3DGameBaseAppState {
 
         my3DGame.getCamera().setAxes(new Vector3f(1.f,0.f,0.f),new Vector3f(0.f, 1.f, 0.f),new Vector3f(0.f,0.f,1.f));
 
-        my3DGame.getRootNode().addLight(directionalLight);
-
-        my3DGame.getRootNode().addLight(directionalLight2);
-
-        my3DGame.getRootNode().addLight(ambientLight);
-
         // load the level from zip or http zip
-        if (customScene==null) {
+        if (gameLevel==null) {
             if (useHttp) {
                 log.debug("Loading Quake level from net");
                 my3DGame.getAssetManager().registerLocator(
@@ -123,8 +122,6 @@ public class TestQ3GameState extends My3DGameBaseAppState {
             gameLevel.setLocalScale(0.1f);
             playerControl.warp(new Vector3f(60, 10, -60));
         } else {
-            gameLevel = (Node) my3DGame.getAssetManager().loadAsset(customModelKey);
-            gameLevel.setLocalScale(3f);
             my3DGame.getRootNode().attachChild(gameLevel);
             //playerNode.setLocalTranslation(new Vector3f(0, 10, -40));
             playerControl.warp(new Vector3f(0, 3, -40));

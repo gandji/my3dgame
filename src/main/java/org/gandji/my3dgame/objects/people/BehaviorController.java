@@ -1,5 +1,9 @@
 package org.gandji.my3dgame.objects.people;
 
+import com.jme3.animation.AnimControl;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
@@ -42,6 +46,15 @@ public class BehaviorController extends BetterCharacterControl {
     }
 
     @Override
+    protected CollisionShape getShape() {
+        //TODO: cleanup size mess..
+        CapsuleCollisionShape capsuleCollisionShape = new CapsuleCollisionShape(getFinalRadius(), (getFinalHeight() /*- (2 * getFinalRadius())*/));
+        CompoundCollisionShape compoundCollisionShape = new CompoundCollisionShape();
+        Vector3f addLocation = new Vector3f(0, (getFinalHeight() / 2.0f), 0);
+        compoundCollisionShape.addChildShape(capsuleCollisionShape, addLocation);
+        return compoundCollisionShape;    }
+
+    @Override
     public void update(float tpf) {
 
         if (target==null) {
@@ -50,16 +63,25 @@ public class BehaviorController extends BetterCharacterControl {
 
         Vector3f targetPosition = target.getWorldTranslation() ;
 
-        Vector3f desiredVelocity = BehaviorServices.steer(node.getPosition(), targetPosition);
+        float distanceToTarget = targetPosition.subtract(node.getPosition()).length();
 
-        if (desiredVelocity.length()< FastMath.ZERO_TOLERANCE) {
-            return;
+        if (distanceToTarget < 3.f) {
+
+            node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_SITTING.positionType());
+            node.getControl().setWalkDirection(new Vector3f());
+
+        } else {
+            Vector3f desiredVelocity = BehaviorServices.steer(node.getPosition(), targetPosition);
+            if (desiredVelocity.length() < FastMath.ZERO_TOLERANCE) {
+                node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_SITTING.positionType());
+                return;
+            }
+
+            node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_RUNNING.positionType());
+            desiredVelocity = desiredVelocity.mult(velocity);
+            node.getControl().setViewDirection(desiredVelocity);
+            node.getControl().setWalkDirection(desiredVelocity);
         }
-
-        desiredVelocity = desiredVelocity.mult(velocity);
-
-        node.getControl().setViewDirection(desiredVelocity);
-        node.getControl().setWalkDirection(desiredVelocity);
 
         super.update(tpf);
     }

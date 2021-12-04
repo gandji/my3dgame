@@ -1,6 +1,7 @@
 package org.gandji.my3dgame.objects.people;
 
 import com.jme3.asset.ModelKey;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.light.AmbientLight;
@@ -27,7 +28,9 @@ public class Zombie implements Person {
     BehaviorController zombiePhysics;
 
     Node zombieNode;
+    Spatial zombieSpatial;
     Health health;
+    private float yOffset;
 
     private final float mass = 90.f;
 
@@ -43,9 +46,21 @@ public class Zombie implements Person {
     @PostConstruct
     public void initialize() {
 
-        //ModelKey keyMonk = new ModelKey("Models/monk.glb");
-        ModelKey keyMonk = new ModelKey("Models/gears-of-war-3-lambent-female.glb");
-        zombieNode = (Node) my3DGame.getAssetManager().loadModel(keyMonk);
+        zombieSpatial = my3DGame.getAssetManager().loadModel("Models/Sinbad/Sinbad.mesh.xml");
+
+        BoundingBox bounds = (BoundingBox) zombieSpatial.getWorldBound();
+        //scale spatial
+        zombieSpatial.setLocalScale(1.8f / (bounds.getYExtent() * 2));
+        bounds = (BoundingBox) zombieSpatial.getWorldBound();
+        //spatial origin is at center so need to offset
+        yOffset = bounds.getYExtent() - bounds.getCenter().y;
+        zombieSpatial.setLocalTranslation(0, yOffset, 0);
+
+        zombieNode = new Node("Zombie");
+        zombieNode.attachChild(zombieSpatial);
+
+        zombieNode.setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_RUNNING.positionType());
+        zombieNode.addControl(new AnimationControl());
 
         health = new Health(100L,100L);
         health.setPerson(this);
@@ -56,25 +71,27 @@ public class Zombie implements Person {
         zombieNode.addControl(zombiePhysics);
         bulletAppState.getPhysicsSpace().add(zombiePhysics);
 
-        Light pointLight = new PointLight();
-        ((PointLight) pointLight).setPosition(new Vector3f(4,4,4));
-        ((PointLight) pointLight).setRadius(125.f);
-        ((PointLight) pointLight).setColor(ColorRGBA.White);
-        ((PointLight) pointLight).setEnabled(true);
-        ((PointLight) pointLight).setFrustumCheckNeeded(true);
-        pointLight.setName("Zombida");
-        zombieNode.addLight(pointLight);
+        if (false) {
+            Light pointLight = new PointLight();
+            ((PointLight) pointLight).setPosition(new Vector3f(4, 4, 4));
+            ((PointLight) pointLight).setRadius(125.f);
+            ((PointLight) pointLight).setColor(ColorRGBA.White);
+            ((PointLight) pointLight).setEnabled(true);
+            ((PointLight) pointLight).setFrustumCheckNeeded(true);
+            pointLight.setName("Zombida");
+            zombieNode.addLight(pointLight);
 
-        Light zombieLight2 = new PointLight();
-        ((PointLight) zombieLight2).setPosition(new Vector3f(-4,4,-4));
-        ((PointLight) zombieLight2).setRadius(125.f);
-        zombieLight2.setName("Zombido");
-        getSpatial().addLight(zombieLight2);
+            Light zombieLight2 = new PointLight();
+            ((PointLight) zombieLight2).setPosition(new Vector3f(-4, 4, -4));
+            ((PointLight) zombieLight2).setRadius(125.f);
+            zombieLight2.setName("Zombido");
+            getSpatial().addLight(zombieLight2);
 
-        Light zombieLight3 = new AmbientLight();
-        zombieLight3.setColor(ColorRGBA.White.mult(2.5f));
-        zombieLight3.setName("Zombidu");
-        getSpatial().addLight(zombieLight3);
+            Light zombieLight3 = new AmbientLight();
+            zombieLight3.setColor(ColorRGBA.White.mult(2.5f));
+            zombieLight3.setName("Zombidu");
+            getSpatial().addLight(zombieLight3);
+        }
 
     }
 
@@ -115,7 +132,7 @@ public class Zombie implements Person {
 
     @Override
     public void setPosition(Vector3f worldPosition) {
-        zombieNode.setLocalTranslation(worldPosition);
+        //zombieNode.setLocalTranslation(worldPosition.addLocal(0,yOffset,0));
     }
 
     @Override
