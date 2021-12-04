@@ -89,6 +89,7 @@ public class TestQ3GameState extends My3DGameBaseAppState {
             useHttp = true;
         }
 
+        my3DGame.getFlyByCamera().setEnabled(true);
         my3DGame.getFlyByCamera().setMoveSpeed(100);
 
         my3DGame.getCamera().setFrustumFar(2000);
@@ -154,6 +155,7 @@ public class TestQ3GameState extends My3DGameBaseAppState {
     protected void onDisable() {
         super.onDisable();
         log.info("Exiting Test Q3");
+        my3DGame.getFlyByCamera().setEnabled(false);
         my3DGame.getRootNode().getLocalLightList().clear();
         my3DGame.getRootNode().getWorldLightList().clear();
     }

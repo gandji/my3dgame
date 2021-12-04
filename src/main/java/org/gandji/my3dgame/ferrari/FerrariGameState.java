@@ -32,9 +32,31 @@ public class FerrariGameState extends My3DGameBaseAppState {
     @Autowired
     Ferrari ferrari;
 
+    Ferrari ferrari2;
+
     @Override
     protected void cleanup(Application app) {
 
+    }
+
+    @Override
+    protected void initialize(Application app) {
+        super.initialize(app);
+        log.info("Initializing Ferrari game");
+        // this is the test world with a floor and some boxes
+        //PhysicsHelper.createPhysicsTestWorld(my3DGame.getRootNode(), my3DGame.getAssetManager(), bulletAppState.getPhysicsSpace());
+        my3DGameTerrain.loadAssets();
+
+        ferrari.loadAssets();
+
+        // the second ferrari is not autowired!
+        ferrari2 =  applicationContext.getBean(Ferrari.class);
+        ferrari2.loadAssets();
+
+        chaseCamera = new ChaseCamera(my3DGame.getCamera(), ferrari.getSpatial(), my3DGame.getInputManager());
+        chaseCamera.setSmoothMotion(true);
+        chaseCamera.setTrailingEnabled(true);
+        chaseCamera.setLookAtOffset(Vector3f.UNIT_Y.mult(3.f));
     }
 
     @Override
@@ -43,42 +65,27 @@ public class FerrariGameState extends My3DGameBaseAppState {
         super.onEnable();
 
         log.info("Loading Ferrari game");
-        // thjis is the test world with a floor and some boxes
-        //PhysicsHelper.createPhysicsTestWorld(my3DGame.getRootNode(), my3DGame.getAssetManager(), bulletAppState.getPhysicsSpace());
-
-        my3DGameTerrain.loadAssets();
-
         // the sky
         my3DGame.getRootNode().attachChild(SkyFactory.createSky(my3DGame.getAssetManager(), "Textures/Sky/Bright/BrightSky.dds", SkyFactory.EnvMapType.CubeMap));
 
         my3DGame.getRootNode().attachChild(my3DGameTerrain.getTerrain());
         bulletAppState.getPhysicsSpace().add(my3DGameTerrain.getTerrain());
 
-        ferrari.loadAssets();
         ferrari.setupKeys(my3DGame.getInputManager());
-
-        my3DGame.getRootNode().attachChild(ferrari.getNode());
+        ferrari.enterState();
         ferrari.setInitialPosition(my3DGameTerrain.getInitialPosition());
         // scene:ferrari.setInitialPosition(new Vector3f(-55.94f, 72.72f, 51.f));
         // generated heightmap ferrari.setInitialPosition(new Vector3f(244.5f, 16.212f, 5));
         // test playground ferrari.setInitialPosition(Vector3f.ZERO);
         ferrari.resetPosition();
 
-        // the second ferrari is not autowired!
-        Ferrari ferrari2 =  applicationContext.getBean(Ferrari.class);
-        ferrari2.loadAssets();
-        my3DGame.getRootNode().attachChild(ferrari2.getNode());
+        ferrari2.enterState();
         ferrari2.setInitialPosition(ferrari.initialPosition.add(10.f, 0.f, 0.f));
         ferrari2.resetPosition();
 
-        Camera cam = my3DGame.getCamera();
-        cam.setLocation(new Vector3f(239.03987f, 25.607182f, 22.808495f));
-        cam.setRotation(new Quaternion(0.006459943f, 0.98668134f, -0.15741317f, 0.040488426f));
+        my3DGame.getRootNode().attachChild(ferrari.getNode());
 
-        chaseCamera = new ChaseCamera(my3DGame.getCamera(), ferrari.getSpatial(), my3DGame.getInputManager());
-        chaseCamera.setSmoothMotion(true);
-        chaseCamera.setTrailingEnabled(true);
-        chaseCamera.setLookAtOffset(Vector3f.UNIT_Y.mult(3.f));
+        my3DGame.getRootNode().attachChild(ferrari2.getNode());
 
         cameraNode = new CameraNode("Camera Node", my3DGame.getCamera());
         //This mode means that camera copies the movements of the target:
@@ -92,12 +99,18 @@ public class FerrariGameState extends My3DGameBaseAppState {
 
         setInputKeys();
 
+        my3DGame.getFlyByCamera().setEnabled(true);
     }
 
     @Override
     protected void onDisable() {
         super.onDisable();
         log.info("Exiting Ferrari game");
+        removeInputKeys();
+        my3DGame.getFlyByCamera().setEnabled(false);
+        ferrari.disableKeys(my3DGame.getInputManager());
+        ferrari.exitState();
+        ferrari2.exitState();
     }
 
     @Override
@@ -114,5 +127,8 @@ public class FerrariGameState extends My3DGameBaseAppState {
         my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE_FLY, new KeyTrigger(KeyInput.KEY_F3));
         my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE);
         my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE_FLY);
+    }
+    private void removeInputKeys() {
+        my3DGame.getInputManager().removeListener(this);
     }
 }

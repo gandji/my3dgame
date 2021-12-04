@@ -124,8 +124,6 @@ public class Ferrari implements ActionListener {
         driver.getWheel(2).setFrictionSlip(4);
         driver.getWheel(3).setFrictionSlip(4);
 
-        bulletAppState.getPhysicsSpace().add(driver);
-
         // lights : put elsewhere?
         Light ferrariLight1 = new PointLight();
         //ferrariLight1.setColor(ColorRGBA.Yellow);
@@ -166,7 +164,9 @@ public class Ferrari implements ActionListener {
         inputManager.addListener(this, "Reset");
     }
 
-
+    public void disableKeys(InputManager inputManager) {
+        inputManager.removeListener(this);
+    }
 
     @Override
     public void onAction(String binding, boolean value, float tpf) {
@@ -214,6 +214,14 @@ public class Ferrari implements ActionListener {
             } else {
             }
         }
+    }
+
+    public void enterState() {
+        bulletAppState.getPhysicsSpace().add(driver);
+    }
+
+    public void exitState() {
+        bulletAppState.getPhysicsSpace().remove(driver);
     }
 
     public void resetPosition() {

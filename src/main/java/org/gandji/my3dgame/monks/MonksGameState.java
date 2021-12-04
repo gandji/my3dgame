@@ -85,11 +85,17 @@ public class MonksGameState extends My3DGameBaseAppState implements ActionListen
 
     }
 
+
+
     private void setInputKeys() {
         my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE, new KeyTrigger(KeyInput.KEY_F2));
         my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE_FLY, new KeyTrigger(KeyInput.KEY_F3));
         my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE);
         my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE_FLY);
+    }
+
+    private void removeInputKeys() {
+        my3DGame.getInputManager().removeListener(this);
     }
 
     @Override
@@ -111,6 +117,8 @@ public class MonksGameState extends My3DGameBaseAppState implements ActionListen
     protected void onDisable() {
         super.onDisable();
         log.info("Exiting Monks game");
+
+        removeInputKeys();
 
     }
 

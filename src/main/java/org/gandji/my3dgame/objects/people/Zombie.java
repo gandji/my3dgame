@@ -3,8 +3,10 @@ package org.gandji.my3dgame.objects.people;
 import com.jme3.asset.ModelKey;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.Light;
 import com.jme3.light.PointLight;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -41,7 +43,8 @@ public class Zombie implements Person {
     @PostConstruct
     public void initialize() {
 
-        ModelKey keyMonk = new ModelKey("Models/monk.glb");
+        //ModelKey keyMonk = new ModelKey("Models/monk.glb");
+        ModelKey keyMonk = new ModelKey("Models/gears-of-war-3-lambent-female.glb");
         zombieNode = (Node) my3DGame.getAssetManager().loadModel(keyMonk);
 
         health = new Health(100L,100L);
@@ -56,8 +59,22 @@ public class Zombie implements Person {
         Light pointLight = new PointLight();
         ((PointLight) pointLight).setPosition(new Vector3f(4,4,4));
         ((PointLight) pointLight).setRadius(125.f);
+        ((PointLight) pointLight).setColor(ColorRGBA.White);
+        ((PointLight) pointLight).setEnabled(true);
+        ((PointLight) pointLight).setFrustumCheckNeeded(true);
         pointLight.setName("Zombida");
         zombieNode.addLight(pointLight);
+
+        Light zombieLight2 = new PointLight();
+        ((PointLight) zombieLight2).setPosition(new Vector3f(-4,4,-4));
+        ((PointLight) zombieLight2).setRadius(125.f);
+        zombieLight2.setName("Zombido");
+        getSpatial().addLight(zombieLight2);
+
+        Light zombieLight3 = new AmbientLight();
+        zombieLight3.setColor(ColorRGBA.White.mult(2.5f));
+        zombieLight3.setName("Zombidu");
+        getSpatial().addLight(zombieLight3);
 
     }
 

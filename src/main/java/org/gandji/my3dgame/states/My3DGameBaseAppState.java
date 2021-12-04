@@ -9,11 +9,13 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.scene.CameraNode;
+import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.My3DGame;
 import org.gandji.my3dgame.ferrari.FerrariGameState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+@Slf4j
 public abstract class My3DGameBaseAppState extends BaseAppState implements ActionListener {
 
     @Autowired
@@ -86,6 +88,7 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
         my3DGame.getInputManager().removeListener(this);
 
         my3DGame.getRootNode().detachAllChildren();
+        my3DGame.getStateManager().detach(bulletAppState);
     }
 
     @Override
@@ -109,12 +112,9 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
     }
 
     protected void backToMenu() {
-        // nope, just exit, because input controls are messed up!
-        // i did not manage to clear input controls between games TODO
-        //my3DGame.getRootNode().detachAllChildren();
-        //my3DGame.getStateManager().detach(this);
-        //my3DGame.getStateManager().attach(menuAppState);
-        my3DGame.stop();
+        my3DGame.getRootNode().detachAllChildren();
+        my3DGame.getStateManager().detach(this);
+        my3DGame.getStateManager().attach(menuAppState);
     }
     private void updateCameraType() {
         /* FIXME common part of cameras?? */
