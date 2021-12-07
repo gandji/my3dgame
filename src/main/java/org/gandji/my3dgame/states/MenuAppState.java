@@ -78,26 +78,26 @@ public class MenuAppState extends BaseAppState {
 
         Button monks = new Button("Play Monks");
         monks.setFontSize(fontSize);
-        menuWindow.addChild(monks);
+        //menuWindow.addChild(monks);
         monks.addClickCommands(source -> {
             my3DGame.getStateManager().detach(MenuAppState.this);
             my3DGame.getStateManager().attach(monksGameState);
         });
 
-        Button testQ3 = new Button("Play Q3");
-        testQ3.setFontSize(fontSize);
-        menuWindow.addChild(testQ3);
-        testQ3.addClickCommands(source -> {
-            my3DGame.getStateManager().detach(MenuAppState.this);
-            my3DGame.getStateManager().attach(testQ3GameState);
-        });
-
-        Button helloCollision = new Button("Play Hello Collision");
+        Button helloCollision = new Button("Walk in Town");
         helloCollision.setFontSize(fontSize);
         menuWindow.addChild(helloCollision);
         helloCollision.addClickCommands(source -> {
             my3DGame.getStateManager().detach(MenuAppState.this);
             my3DGame.getStateManager().attach(helloCollisionAppState);
+        });
+
+        Button testQ3 = new Button("Play with Sinbad");
+        testQ3.setFontSize(fontSize);
+        menuWindow.addChild(testQ3);
+        testQ3.addClickCommands(source -> {
+            my3DGame.getStateManager().detach(MenuAppState.this);
+            my3DGame.getStateManager().attach(testQ3GameState);
         });
 
         Button close = new Button("Exit");

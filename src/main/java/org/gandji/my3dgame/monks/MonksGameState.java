@@ -122,14 +122,4 @@ public class MonksGameState extends My3DGameBaseAppState implements ActionListen
 
     }
 
-    @Override
-    public void onAction(String name, boolean isPressed, float tpf) {
-        super.onAction(name,isPressed,tpf);
-        if (name.equals(SimpleApplication.INPUT_MAPPING_EXIT)) {
-            log.debug("Wanna stop playing with the Monks?...OK");
-            backToMenu();
-        }
-
-
-    }
 }

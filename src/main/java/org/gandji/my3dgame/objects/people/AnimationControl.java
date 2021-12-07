@@ -63,8 +63,8 @@ public class AnimationControl extends AbstractControl {
     private AnimControl animControl;
     private static final Logger LOG = Logger.getLogger(AnimationControl.class.
             getName());
-    private int posType;
-    private Integer previousPosType;
+    private EnumPosType posType;
+    private EnumPosType previousPosType;
 
     @Override
     public void setSpatial(Spatial spatial) {
@@ -178,39 +178,33 @@ public class AnimationControl extends AbstractControl {
      *
      * @return spatials physical posType
      */
-    private int getPosType() {
-        return (int) spatial.getUserData(DataKey.POSITION_TYPE);
+    private EnumPosType getPosType() {
+        return EnumPosType.fromId(spatial.getUserData(DataKey.POSITION_TYPE));
     }
 
     private void updatePosTypeAndAnimation(AnimChannel channel) {
-        for (EnumPosType pos : EnumPosType.values()) {
-            if (pos.positionType() == posType) {
-                switch (pos) {
-                    case POS_RUNNING:
-                        if (channel.equals(feetChannel)) {
-                            channel.setAnim(AnimInput.RUN_BASE);
-                            channel.setLoopMode(LoopMode.Loop);
-                        }
-                        if (channel.equals(torsoChannel)) {
-                            channel.setAnim(AnimInput.RUN_TOP);
-                            channel.setLoopMode(LoopMode.Loop);
-                        }
-                        break;
-                    default:
-                        if (channel.equals(feetChannel)) {
-                            feetChannel.setAnim(AnimInput.IDLE_BASE);
-                            feetChannel.setLoopMode(LoopMode.Loop);
-                        }
-                        if (channel.equals(torsoChannel)) {
-                            torsoChannel.setAnim(AnimInput.IDLE_TOP);
-                            torsoChannel.setLoopMode(LoopMode.Loop);
-                        }
-                        break;
+        switch (posType) {
+            case POS_RUNNING:
+                if (channel.equals(feetChannel)) {
+                    channel.setAnim(AnimInput.RUN_BASE);
+                    channel.setLoopMode(LoopMode.Loop);
                 }
-            }
+                if (channel.equals(torsoChannel)) {
+                    channel.setAnim(AnimInput.RUN_TOP);
+                    channel.setLoopMode(LoopMode.Loop);
+                }
+                break;
+            default:
+                if (channel.equals(feetChannel)) {
+                    feetChannel.setAnim(AnimInput.IDLE_BASE);
+                    feetChannel.setLoopMode(LoopMode.Loop);
+                }
+                if (channel.equals(torsoChannel)) {
+                    torsoChannel.setAnim(AnimInput.IDLE_TOP);
+                    torsoChannel.setLoopMode(LoopMode.Loop);
+                }
+                break;
         }
-
-
     }
 
 }

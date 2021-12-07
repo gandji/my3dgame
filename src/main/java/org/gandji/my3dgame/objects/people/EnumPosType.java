@@ -50,11 +50,11 @@ public enum EnumPosType {
     POS_RUNNING(11, 3.0f);
 
     private final float speed;
-    private final int position;
+    private final int id;
 
     EnumPosType(int position, float speed) {
         this.speed = speed;
-        this.position = position;
+        this.id = position;
     }
 
     /**
@@ -67,8 +67,17 @@ public enum EnumPosType {
     /**
      * @return the position
      */
-    public int positionType() {
-        return position;
+    public int getId() {
+        return id;
+    }
+
+    public static EnumPosType fromId(int id) {
+        for (EnumPosType value : values()) {
+            if (value.id==id) {
+                return value;
+            }
+        }
+        return null;
     }
 
 }

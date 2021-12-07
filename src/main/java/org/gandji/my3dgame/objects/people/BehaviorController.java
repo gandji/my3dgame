@@ -1,13 +1,10 @@
 package org.gandji.my3dgame.objects.people;
 
-import com.jme3.animation.AnimControl;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
-import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.services.BehaviorServices;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,31 +14,23 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 @Slf4j
-public class BehaviorController extends BetterCharacterControl {
+@Deprecated
+public class BehaviorController extends AbstractMy3DGameCharacterController {
 
     private final Person node;
-    private Node target;
-    private float velocity;
+    Vector3f targetPosition;
 
-    public void setVelocity(float velocity) {
-        this.velocity = velocity;
-    }
-
-    public void setTarget(Node target) {
-        this.target = target;
-    }
-
-    enum CurrentBehavior {
-        STEER;
+    @Deprecated
+    public void setTarget(Vector3f targetPosition) {
+        this.targetPosition = targetPosition;
     }
 
     @Autowired
     BehaviorServices behaviorServices;
 
-    public BehaviorController(Person person, float velocity) {
-        super(1,4,90 );// TODO person dimensions here
+    public BehaviorController(Person person) {
+        super(1,4,90 );
         this.node = person;
-        this.velocity = velocity;
         setSpatial(node.getSpatial());
     }
 
@@ -57,28 +46,26 @@ public class BehaviorController extends BetterCharacterControl {
     @Override
     public void update(float tpf) {
 
-        if (target==null) {
+        if (targetPosition==null) {
             return;
         }
 
-        Vector3f targetPosition = target.getWorldTranslation() ;
-
         float distanceToTarget = targetPosition.subtract(node.getPosition()).length();
 
-        if (distanceToTarget < 3.f) {
+        if (distanceToTarget < 3.f || distanceToTarget > 50.f) {
 
-            node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_SITTING.positionType());
+            node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_SITTING.getId());
             node.getControl().setWalkDirection(new Vector3f());
 
         } else {
             Vector3f desiredVelocity = BehaviorServices.steer(node.getPosition(), targetPosition);
             if (desiredVelocity.length() < FastMath.ZERO_TOLERANCE) {
-                node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_SITTING.positionType());
+                node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_SITTING.getId());
                 return;
             }
 
-            node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_RUNNING.positionType());
-            desiredVelocity = desiredVelocity.mult(velocity);
+            node.getSpatial().setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_RUNNING.getId());
+            desiredVelocity = desiredVelocity.mult(getVelocity());
             node.getControl().setViewDirection(desiredVelocity);
             node.getControl().setWalkDirection(desiredVelocity);
         }
@@ -86,5 +73,8 @@ public class BehaviorController extends BetterCharacterControl {
         super.update(tpf);
     }
 
+    @Override
+    public void setAction(String name, boolean isPressed, float tpf) {
 
+    }
 }

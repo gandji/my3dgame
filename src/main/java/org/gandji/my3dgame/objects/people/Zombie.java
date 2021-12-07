@@ -1,13 +1,8 @@
 package org.gandji.my3dgame.objects.people;
 
-import com.jme3.asset.ModelKey;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.BetterCharacterControl;
-import com.jme3.light.AmbientLight;
-import com.jme3.light.Light;
-import com.jme3.light.PointLight;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -25,7 +20,7 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class Zombie implements Person {
 
-    BehaviorController zombiePhysics;
+    AbstractMy3DGameCharacterController zombieControl;
 
     Node zombieNode;
     Spatial zombieSpatial;
@@ -59,55 +54,18 @@ public class Zombie implements Person {
         zombieNode = new Node("Zombie");
         zombieNode.attachChild(zombieSpatial);
 
-        zombieNode.setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_RUNNING.positionType());
+        zombieNode.setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_RUNNING.getId());
         zombieNode.addControl(new AnimationControl());
 
         health = new Health(100L,100L);
         health.setPerson(this);
 
-        zombiePhysics = applicationContext.getBean(BehaviorController.class,this, 4);
-        zombiePhysics.setGravity(new Vector3f(0.f, -9.81f, 0.f));
-        zombiePhysics.setPhysicsDamping(0.5f);
-        zombieNode.addControl(zombiePhysics);
-        bulletAppState.getPhysicsSpace().add(zombiePhysics);
+        zombieControl = applicationContext.getBean(PCControl.class,1,4, 90);
+        zombieControl.setGravity(new Vector3f(0.f, -9.81f, 0.f));
+        zombieControl.setPhysicsDamping(0.5f);
+        zombieNode.addControl(zombieControl);
+        bulletAppState.getPhysicsSpace().add(zombieControl);
 
-        if (false) {
-            Light pointLight = new PointLight();
-            ((PointLight) pointLight).setPosition(new Vector3f(4, 4, 4));
-            ((PointLight) pointLight).setRadius(125.f);
-            ((PointLight) pointLight).setColor(ColorRGBA.White);
-            ((PointLight) pointLight).setEnabled(true);
-            ((PointLight) pointLight).setFrustumCheckNeeded(true);
-            pointLight.setName("Zombida");
-            zombieNode.addLight(pointLight);
-
-            Light zombieLight2 = new PointLight();
-            ((PointLight) zombieLight2).setPosition(new Vector3f(-4, 4, -4));
-            ((PointLight) zombieLight2).setRadius(125.f);
-            zombieLight2.setName("Zombido");
-            getSpatial().addLight(zombieLight2);
-
-            Light zombieLight3 = new AmbientLight();
-            zombieLight3.setColor(ColorRGBA.White.mult(2.5f));
-            zombieLight3.setName("Zombidu");
-            getSpatial().addLight(zombieLight3);
-        }
-
-    }
-
-    public void setBehaviorController(BehaviorController behaviorController) {
-
-        if (zombiePhysics!=null) {
-            zombieNode.removeControl(zombiePhysics);
-            bulletAppState.getPhysicsSpace().remove(zombiePhysics);
-            zombiePhysics = null;
-        }
-
-        if (behaviorController!=null) {
-            this.zombiePhysics = behaviorController;
-            zombieNode.addControl(zombiePhysics);
-            bulletAppState.getPhysicsSpace().add(zombiePhysics);
-        }
     }
 
     @Override
@@ -127,12 +85,12 @@ public class Zombie implements Person {
 
     @Override
     public BetterCharacterControl getControl() {
-        return zombiePhysics;
+        return zombieControl;
     }
 
     @Override
     public void setPosition(Vector3f worldPosition) {
-        //zombieNode.setLocalTranslation(worldPosition.addLocal(0,yOffset,0));
+        zombieSpatial.setLocalTranslation(worldPosition.add(0,yOffset,0));
     }
 
     @Override
@@ -145,15 +103,4 @@ public class Zombie implements Person {
         return zombieNode;
     }
 
-    public void setTarget(Node target) {
-        if (this.zombiePhysics!=null) {
-            this.zombiePhysics.setTarget(target);
-        }
-    }
-
-    public void setVelocity(float velocity) {
-        if (this.zombiePhysics!=null) {
-            this.zombiePhysics.setVelocity(velocity);
-        }
-    }
 }

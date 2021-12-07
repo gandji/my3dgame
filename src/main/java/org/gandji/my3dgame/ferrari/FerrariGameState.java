@@ -113,15 +113,6 @@ public class FerrariGameState extends My3DGameBaseAppState {
         ferrari2.exitState();
     }
 
-    @Override
-    public void onAction(String name, boolean isPressed, float tpf) {
-        super.onAction(name,isPressed,tpf);
-        if (name.equals(SimpleApplication.INPUT_MAPPING_EXIT)) {
-            log.debug("Wanna stop playing with the Ferraris?...OK");
-            backToMenu();
-        }
-    }
-
     private void setInputKeys() {
         my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE, new KeyTrigger(KeyInput.KEY_F2));
         my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE_FLY, new KeyTrigger(KeyInput.KEY_F3));

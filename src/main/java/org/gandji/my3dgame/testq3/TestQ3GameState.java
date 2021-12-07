@@ -1,13 +1,13 @@
 package org.gandji.my3dgame.testq3;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.asset.ModelKey;
 import com.jme3.asset.plugins.HttpZipLocator;
 import com.jme3.asset.plugins.ZipLocator;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -17,14 +17,29 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.plugins.ogre.OgreMeshKey;
 import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.ai.NavMeshState;
+import org.gandji.my3dgame.ai.NavigationControl;
+import org.gandji.my3dgame.keyboard.Mapping;
 import org.gandji.my3dgame.objects.people.Zombie;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * TODO display wireframes
+ * TODO flicker when not finding path
+ * TODO keyboard mappings descriptors
+ * TODO configure + force recomputation of navmesh?
+ * TODO redesign level: nav mesh is discontinuous
+ * TODO shoot at zombie
+ */
 @Component
 @Slf4j
 public class TestQ3GameState extends My3DGameBaseAppState {
@@ -42,6 +57,44 @@ public class TestQ3GameState extends My3DGameBaseAppState {
 
     ModelKey customModelKey;
     private Node playerNode;
+
+    @Autowired
+    private NavMeshState navMeshState;
+
+    private NavigationControl navControl;
+    private List<Mapping> mappings = null;
+
+    @PostConstruct
+    public void buildKeyMappings() {
+        mappings = new ArrayList<>();
+        mappings.add(new Mapping("Lefts", "Stride left", KeyInput.KEY_Q,
+                (ActionListener) (name, isPressed, tpf) -> left = isPressed));
+        mappings.add(new Mapping("Rights", "Stride right", KeyInput.KEY_D,
+                (ActionListener) (name, isPressed, tpf) -> right = isPressed));
+        mappings.add(new Mapping("Ups", "Look up", KeyInput.KEY_Z,
+                (ActionListener) (name, isPressed, tpf) -> up = isPressed));
+        mappings.add(new Mapping("Downs", "Look down", KeyInput.KEY_S,
+                (ActionListener) (name, isPressed, tpf) -> down = isPressed));
+        mappings.add(new Mapping("ShootFire", "Fire", KeyInput.KEY_COMMA,
+                (ActionListener) (name, isPressed, tpf) -> {
+                }));
+        mappings.add(new Mapping("Space", "Jump", KeyInput.KEY_SPACE,
+                (ActionListener) (name, isPressed, tpf) -> playerControl.jump()));
+        mappings.add(new Mapping("Reset", "Reset", KeyInput.KEY_RETURN,
+                (ActionListener) (name, isPressed, tpf) -> {
+                }));
+        mappings.add(new Mapping("CallZombie", "Call the zombie", KeyInput.KEY_P,
+                (ActionListener) (name, isPressed, tpf) ->
+                        navControl.setTarget(playerNode.getWorldTranslation())));
+
+        mappings.add(new Mapping(INPUT_CAMERA_TYPE, "Switch camera type", KeyInput.KEY_F2,
+                (ActionListener) (name, isPressed, tpf) -> TestQ3GameState.super.onAction(name, isPressed, tpf)));
+
+        mappings.add(new Mapping(INPUT_CAMERA_TYPE_FLY, "Switch to fly by camera", KeyInput.KEY_F3,
+                (ActionListener) (name, isPressed, tpf) -> TestQ3GameState.super.onAction(name, isPressed, tpf)));
+
+
+    }
 
     @Override
     protected void initialize(Application app) {
@@ -67,6 +120,10 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         customModelKey = new ModelKey("Models/vaisseau1.glb");
         gameLevel = (Node) my3DGame.getAssetManager().loadAsset(customModelKey);
         gameLevel.setLocalScale(3f);
+
+        my3DGame.getStateManager().attach(navMeshState);
+
+        navControl = applicationContext.getBean(NavigationControl.class, navMeshState.getNavMesh());
 
     }
 
@@ -101,6 +158,15 @@ public class TestQ3GameState extends My3DGameBaseAppState {
 
         my3DGame.getCamera().setAxes(new Vector3f(1.f,0.f,0.f),new Vector3f(0.f, 1.f, 0.f),new Vector3f(0.f,0.f,1.f));
 
+        // spawn the zombie
+        Zombie zombie = applicationContext.getBean(Zombie.class);
+        my3DGame.getRootNode().attachChild(zombie.getSpatial());
+        zombie.getSpatial().addControl(navControl);
+        Vector3f zombieInitialPosition = new Vector3f(0.f,0.f,10.f);
+        zombie.getControl().warp(zombieInitialPosition);
+
+        Vector3f playerInitialPosition;
+
         // load the level from zip or http zip
         if (gameLevel==null) {
             if (useHttp) {
@@ -120,11 +186,14 @@ public class TestQ3GameState extends My3DGameBaseAppState {
             com.jme3.scene.plugins.ogre.OgreMeshKey key = new OgreMeshKey("main.meshxml", matList);
             gameLevel = (Node) my3DGame.getAssetManager().loadAsset(key);
             gameLevel.setLocalScale(0.1f);
-            playerControl.warp(new Vector3f(60, 10, -60));
+            playerInitialPosition = new Vector3f(60, 10, -60);
+            playerControl.warp(playerInitialPosition);
         } else {
             my3DGame.getRootNode().attachChild(gameLevel);
-            //playerNode.setLocalTranslation(new Vector3f(0, 10, -40));
-            playerControl.warp(new Vector3f(0, 3, -40));
+            // outside
+            //playerInitialPosition = new  Vector3f(0, 3, -40);
+            // inside
+            playerInitialPosition = new Vector3f(0.8f, 0.3f, 61.f);
         }
         log.debug("OK ... loaded");
 
@@ -140,10 +209,8 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         bulletAppState.getPhysicsSpace().addAll(playerNode);
         my3DGame.getRootNode().attachChild(playerNode);
 
-        Zombie zombie = applicationContext.getBean(Zombie.class);
-        zombie.setPosition( new Vector3f(4.f,2.f,2.f));
-        zombie.setTarget(playerNode);
-        my3DGame.getRootNode().attachChild(zombie.getSpatial());
+        playerControl.warp(playerInitialPosition);
+        my3DGame.getCamera().lookAtDirection(zombieInitialPosition.subtract(playerInitialPosition),Vector3f.UNIT_Y);
 
         setInputKeys();
     }
@@ -155,6 +222,7 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         my3DGame.getFlyByCamera().setEnabled(false);
         my3DGame.getRootNode().getLocalLightList().clear();
         my3DGame.getRootNode().getWorldLightList().clear();
+        clearInputKeys();
     }
 
     /**
@@ -181,62 +249,22 @@ public class TestQ3GameState extends My3DGameBaseAppState {
         my3DGame.getCamera().setLocation(new Vector3f(0.f,3.f,0.f).addLocal(playerNode.getWorldTranslation()));
     }
 
-    @Override
-    public void onAction(String name, boolean isPressed, float tpf) {
-        super.onAction(name,isPressed,tpf);
-        if (name.equals(SimpleApplication.INPUT_MAPPING_EXIT)) {
-            log.debug("Wanna stop playing with test Q3?...OK");
-            backToMenu();
-        }
-        if (name.equals("Lefts")) {
-            if(isPressed)
-                left=true;
-            else
-                left=false;
-        } else if (name.equals("Rights")) {
-            if(isPressed)
-                right=true;
-            else
-                right=false;
-        } else if (name.equals("Ups")) {
-            if(isPressed)
-                up=true;
-            else
-                up=false;
-        } else if (name.equals("Downs")) {
-            if(isPressed)
-                down=true;
-            else
-                down=false;
-        } else if (name.equals("Space")) {
-            playerControl.jump();
-        }
-    }
-
     public void setInputKeys() {
-        my3DGame.getInputManager().addMapping("Lefts", new KeyTrigger(KeyInput.KEY_Q));
-        my3DGame.getInputManager().addMapping("Rights", new KeyTrigger(KeyInput.KEY_D));
-        my3DGame.getInputManager().addMapping("Ups", new KeyTrigger(KeyInput.KEY_Z));
-        my3DGame.getInputManager().addMapping("Downs", new KeyTrigger(KeyInput.KEY_S));
-        my3DGame.getInputManager().addMapping("Backs", new KeyTrigger(KeyInput.KEY_COMMA));
-        my3DGame.getInputManager().addMapping("Space", new KeyTrigger(KeyInput.KEY_SPACE));
-        my3DGame.getInputManager().addMapping("Reset", new KeyTrigger(KeyInput.KEY_RETURN));
-        my3DGame.getInputManager().addListener(this, "Lefts");
-        my3DGame.getInputManager().addListener(this, "Rights");
-        my3DGame.getInputManager().addListener(this, "Ups");
-        my3DGame.getInputManager().addListener(this, "Downs");
-        my3DGame.getInputManager().addListener(this, "Backs");
-        my3DGame.getInputManager().addListener(this, "Space");
-        my3DGame.getInputManager().addListener(this, "Reset");
-
-        my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE, new KeyTrigger(KeyInput.KEY_F2));
-        my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE_FLY, new KeyTrigger(KeyInput.KEY_F3));
-        my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE);
-        my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE_FLY);
-
+        for (Mapping mapping : mappings) {
+            mapping.addToInputManager(my3DGame.getInputManager());
+        }
     }
+
+    private void clearInputKeys() {
+        for (Mapping mapping : mappings) {
+            my3DGame.getInputManager().deleteMapping(mapping.getName());
+        }
+    }
+
     @Override
     protected void cleanup(Application app) {
+
+        getStateManager().detach(navMeshState);
 
     }
 

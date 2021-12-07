@@ -1,7 +1,6 @@
 package org.gandji.my3dgame.hellocollision;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.asset.plugins.HttpZipLocator;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
@@ -9,16 +8,26 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.KeyInput;
-import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.ActionListener;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.keyboard.Mapping;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * This uses the old CharacterControl
+ *
+ * From a tuto for collision shapes
+ */
 @Component
 @Slf4j
 public class HelloCollisionAppState extends My3DGameBaseAppState {
@@ -33,6 +42,31 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
     //They here to avoid instantiating new vectors on each frame
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
+
+    private List<Mapping> mappings = null;
+
+    @PostConstruct
+    public void buildKeyMappings() {
+        mappings = new ArrayList<>();
+        mappings.add(new Mapping("Lefts", "Stride left", KeyInput.KEY_Q,
+                (ActionListener) (name, isPressed, tpf) -> left = isPressed));
+        mappings.add(new Mapping("Rights", "Stride right", KeyInput.KEY_D,
+                (ActionListener) (name, isPressed, tpf) -> right = isPressed));
+        mappings.add(new Mapping("Ups", "Look up", KeyInput.KEY_Z,
+                (ActionListener) (name, isPressed, tpf) -> up = isPressed));
+        mappings.add(new Mapping("Downs", "Look down", KeyInput.KEY_S,
+                (ActionListener) (name, isPressed, tpf) -> down = isPressed));
+        mappings.add(new Mapping("Space", "Jump", KeyInput.KEY_SPACE,
+                (ActionListener) (name, isPressed, tpf) -> player.jump(Vector3f.UNIT_Y)));
+
+        mappings.add(new Mapping(INPUT_CAMERA_TYPE, "Switch camera type", KeyInput.KEY_F2,
+                (ActionListener) (name, isPressed, tpf) -> HelloCollisionAppState.super.onAction(name, isPressed, tpf)));
+
+        mappings.add(new Mapping(INPUT_CAMERA_TYPE_FLY, "Switch to fly by camera", KeyInput.KEY_F3,
+                (ActionListener) (name, isPressed, tpf) -> HelloCollisionAppState.super.onAction(name, isPressed, tpf)));
+    }
+
+
     @Override
     protected void initialize(Application app) {
         super.initialize(app);
@@ -47,8 +81,8 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         my3DGame.getViewPort().setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+        my3DGame.getFlyByCamera().setEnabled(true);
         my3DGame.getFlyByCamera().setMoveSpeed(100);
-        setUpKeys();
         setUpLight();
 
         // We load the scene from the zip file and adjust its size.
@@ -82,6 +116,8 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
         my3DGame.getRootNode().attachChild(sceneModel);
         bulletAppState.getPhysicsSpace().add(landscape);
         bulletAppState.getPhysicsSpace().add(player);
+
+        setInputKeys();
     }
 
     private void setUpLight() {
@@ -98,39 +134,21 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
 
     /** We over-write some navigational key mappings here, so we can
      * add physics-controlled walking and jumping: */
-    private void setUpKeys() {
-        my3DGame.getInputManager().addMapping("Left", new KeyTrigger(KeyInput.KEY_Q));
-        my3DGame.getInputManager().addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-        my3DGame.getInputManager().addMapping("Up", new KeyTrigger(KeyInput.KEY_Z));
-        my3DGame.getInputManager().addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
-        my3DGame.getInputManager().addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
-        my3DGame.getInputManager().addListener(this, "Left");
-        my3DGame.getInputManager().addListener(this, "Right");
-        my3DGame.getInputManager().addListener(this, "Up");
-        my3DGame.getInputManager().addListener(this, "Down");
-        my3DGame.getInputManager().addListener(this, "Jump");
+    private void setInputKeys() {
+        for (Mapping mapping : mappings) {
+            mapping.addToInputManager(my3DGame.getInputManager());
+        }
     }
 
-    /** These are our custom actions triggered by key presses.
-     * We do not walk yet, we just keep track of the direction the user pressed. */
+    private void clearInputKeys() {
+        for (Mapping mapping : mappings) {
+            my3DGame.getInputManager().deleteMapping(mapping.getName());
+        }
+    }
+
     @Override
     public void onAction(String binding, boolean isPressed, float tpf) {
         super.onAction(binding,isPressed,tpf);
-        if (binding.equals(SimpleApplication.INPUT_MAPPING_EXIT)) {
-            log.debug("Wanna stop playing with test Q3?...OK");
-            backToMenu();
-        }
-        if (binding.equals("Left")) {
-            if (isPressed) { left = true; } else { left = false; }
-        } else if (binding.equals("Right")) {
-            if (isPressed) { right = true; } else { right = false; }
-        } else if (binding.equals("Up")) {
-            if (isPressed) { up = true; } else { up = false; }
-        } else if (binding.equals("Down")) {
-            if (isPressed) { down = true; } else { down = false; }
-        } else if (binding.equals("Jump")) {
-            player.jump();
-        }
     }
 
     /**
@@ -165,8 +183,10 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
     protected void onDisable() {
         super.onDisable();
         log.info("Exiting Hello Collision");
+        my3DGame.getFlyByCamera().setEnabled(false);
         my3DGame.getRootNode().getLocalLightList().clear();
         my3DGame.getRootNode().getWorldLightList().clear();
+        clearInputKeys();
     }
 
     @Override

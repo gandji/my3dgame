@@ -7,11 +7,11 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.scene.CameraNode;
 import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.My3DGame;
 import org.gandji.my3dgame.ferrari.FerrariGameState;
+import org.gandji.my3dgame.keyboard.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -69,23 +69,17 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
         my3DGame.getStateManager().attach(bulletAppState);
 
         if (my3DGame.getInputManager() != null) {
-            if (my3DGame.getInputManager().hasMapping(SimpleApplication.INPUT_MAPPING_EXIT))
-                my3DGame.getInputManager().deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
-
-            my3DGame.getInputManager().addMapping(SimpleApplication.INPUT_MAPPING_EXIT, new KeyTrigger(KeyInput.KEY_ESCAPE));
-            my3DGame.getInputManager().addListener(this,SimpleApplication.INPUT_MAPPING_EXIT);
+            new Mapping(SimpleApplication.INPUT_MAPPING_EXIT, "Exit", KeyInput.KEY_ESCAPE,
+                    (ActionListener) (name, isPressed, tpf) -> backToMenu())
+            .addToInputManager(my3DGame.getInputManager());
         }
-
-
 
         updateCameraType();
     }
 
     @Override
     protected void onDisable() {
-        if (my3DGame.getInputManager().hasMapping(SimpleApplication.INPUT_MAPPING_EXIT))
-            my3DGame.getInputManager().deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
-        my3DGame.getInputManager().removeListener(this);
+        my3DGame.getInputManager().deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
 
         my3DGame.getRootNode().detachAllChildren();
         my3DGame.getStateManager().detach(bulletAppState);

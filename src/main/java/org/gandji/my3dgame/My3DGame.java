@@ -1,9 +1,7 @@
 package org.gandji.my3dgame;
 
-import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.font.BitmapFont;
-import com.jme3.input.FlyByCamera;
 import com.simsilica.lemur.GuiGlobals;
 import lombok.extern.log4j.Log4j;
 import org.gandji.my3dgame.states.FlyCamAppStateAzerty;
