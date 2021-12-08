@@ -18,6 +18,8 @@ import com.jme3.scene.CameraNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.CameraControl;
 import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.keyboard.Mapping;
+import org.gandji.my3dgame.states.ActionDescriptor;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.stereotype.Component;
 
@@ -85,13 +87,11 @@ public class MonksGameState extends My3DGameBaseAppState implements ActionListen
 
     }
 
-
-
     private void setInputKeys() {
-        my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE, new KeyTrigger(KeyInput.KEY_F2));
-        my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE_FLY, new KeyTrigger(KeyInput.KEY_F3));
-        my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE);
-        my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE_FLY);
+        mappings.add(new Mapping(ActionDescriptor.INPUT_CAMERA_TYPE,"Switch camera type",this)
+                .updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping(ActionDescriptor.INPUT_CAMERA_TYPE_FLY,"Switch to fly by camera",this)
+                .updateMapping(my3DGame.getInputManager()));
     }
 
     private void removeInputKeys() {

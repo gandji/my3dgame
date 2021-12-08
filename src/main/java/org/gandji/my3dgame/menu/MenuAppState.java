@@ -1,8 +1,7 @@
-package org.gandji.my3dgame.states;
+package org.gandji.my3dgame.menu;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.state.AppState;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.KeyTrigger;

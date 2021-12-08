@@ -19,10 +19,6 @@ import org.gandji.my3dgame.keyboard.Mapping;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This uses the old CharacterControl
  *
@@ -43,27 +39,8 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
 
-    private List<Mapping> mappings = null;
-
-    @PostConstruct
     public void buildKeyMappings() {
-        mappings = new ArrayList<>();
-        mappings.add(new Mapping("Lefts", "Stride left", KeyInput.KEY_Q,
-                (ActionListener) (name, isPressed, tpf) -> left = isPressed));
-        mappings.add(new Mapping("Rights", "Stride right", KeyInput.KEY_D,
-                (ActionListener) (name, isPressed, tpf) -> right = isPressed));
-        mappings.add(new Mapping("Ups", "Look up", KeyInput.KEY_Z,
-                (ActionListener) (name, isPressed, tpf) -> up = isPressed));
-        mappings.add(new Mapping("Downs", "Look down", KeyInput.KEY_S,
-                (ActionListener) (name, isPressed, tpf) -> down = isPressed));
-        mappings.add(new Mapping("Space", "Jump", KeyInput.KEY_SPACE,
-                (ActionListener) (name, isPressed, tpf) -> player.jump(Vector3f.UNIT_Y)));
 
-        mappings.add(new Mapping(INPUT_CAMERA_TYPE, "Switch camera type", KeyInput.KEY_F2,
-                (ActionListener) (name, isPressed, tpf) -> HelloCollisionAppState.super.onAction(name, isPressed, tpf)));
-
-        mappings.add(new Mapping(INPUT_CAMERA_TYPE_FLY, "Switch to fly by camera", KeyInput.KEY_F3,
-                (ActionListener) (name, isPressed, tpf) -> HelloCollisionAppState.super.onAction(name, isPressed, tpf)));
     }
 
 
@@ -135,20 +112,36 @@ public class HelloCollisionAppState extends My3DGameBaseAppState {
     /** We over-write some navigational key mappings here, so we can
      * add physics-controlled walking and jumping: */
     private void setInputKeys() {
-        for (Mapping mapping : mappings) {
-            mapping.addToInputManager(my3DGame.getInputManager());
-        }
+
+        // pfff add these only for help display,
+        // do not pass to input manager, where do these come from??
+        mappings.add(new Mapping("<Up>", "Look down", KeyInput.KEY_UP,this));
+        mappings.add(new Mapping("<Down>", "Look up", KeyInput.KEY_DOWN,this));
+        mappings.add(new Mapping("<Left>", "Turn left", KeyInput.KEY_LEFT,this));
+        mappings.add(new Mapping("<Right>", "Turn right", KeyInput.KEY_RIGHT,this));
+
+        mappings.add(new Mapping("<Q>", "Stride left", KeyInput.KEY_Q,
+                (ActionListener) (name, isPressed, tpf) -> left = isPressed)
+                .updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<D>", "Stride right", KeyInput.KEY_D,
+                (ActionListener) (name, isPressed, tpf) -> right = isPressed)
+                .updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<Z>", "Walk", KeyInput.KEY_Z,
+                (ActionListener) (name, isPressed, tpf) -> up = isPressed)
+                .updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<S>", "Walk back", KeyInput.KEY_S,
+                (ActionListener) (name, isPressed, tpf) -> down = isPressed)
+                .updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<SPACE>", "Jump", KeyInput.KEY_SPACE,
+                (ActionListener) (name, isPressed, tpf) -> player.jump(Vector3f.UNIT_Y))
+                .updateMapping(my3DGame.getInputManager()));
+
     }
 
     private void clearInputKeys() {
         for (Mapping mapping : mappings) {
             my3DGame.getInputManager().deleteMapping(mapping.getName());
         }
-    }
-
-    @Override
-    public void onAction(String binding, boolean isPressed, float tpf) {
-        super.onAction(binding,isPressed,tpf);
     }
 
     /**

@@ -1,23 +1,18 @@
 package org.gandji.my3dgame.ferrari;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.input.ChaseCamera;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.Camera;
 import com.jme3.scene.CameraNode;
 import com.jme3.scene.control.CameraControl;
 import com.jme3.util.SkyFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.gandji.my3dgame.*;
+import org.gandji.my3dgame.My3DGameTerrain;
+import org.gandji.my3dgame.keyboard.Mapping;
+import org.gandji.my3dgame.states.ActionDescriptor;
 import org.gandji.my3dgame.states.My3DGameBaseAppState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Created by gandji on 19/01/2020.
@@ -71,7 +66,6 @@ public class FerrariGameState extends My3DGameBaseAppState {
         my3DGame.getRootNode().attachChild(my3DGameTerrain.getTerrain());
         bulletAppState.getPhysicsSpace().add(my3DGameTerrain.getTerrain());
 
-        ferrari.setupKeys(my3DGame.getInputManager());
         ferrari.enterState();
         ferrari.setInitialPosition(my3DGameTerrain.getInitialPosition());
         // scene:ferrari.setInitialPosition(new Vector3f(-55.94f, 72.72f, 51.f));
@@ -97,6 +91,9 @@ public class FerrariGameState extends My3DGameBaseAppState {
         //Rotate the camNode to look at the target:
         cameraNode.lookAt(ferrari.getNode().getLocalTranslation().add(Vector3f.UNIT_Y.mult(3.f)), Vector3f.UNIT_Y);
 
+        mappings.addAll(my3DGameTerrain.setupKeys());
+        mappings.addAll(ferrari.setupKeys());
+
         setInputKeys();
 
         my3DGame.getFlyByCamera().setEnabled(true);
@@ -108,16 +105,17 @@ public class FerrariGameState extends My3DGameBaseAppState {
         log.info("Exiting Ferrari game");
         removeInputKeys();
         my3DGame.getFlyByCamera().setEnabled(false);
-        ferrari.disableKeys(my3DGame.getInputManager());
+        my3DGameTerrain.disableKeys();
+        ferrari.disableKeys();
         ferrari.exitState();
         ferrari2.exitState();
     }
 
     private void setInputKeys() {
-        my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE, new KeyTrigger(KeyInput.KEY_F2));
-        my3DGame.getInputManager().addMapping(INPUT_CAMERA_TYPE_FLY, new KeyTrigger(KeyInput.KEY_F3));
-        my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE);
-        my3DGame.getInputManager().addListener(this, INPUT_CAMERA_TYPE_FLY);
+        mappings.add(new Mapping(ActionDescriptor.INPUT_CAMERA_TYPE,"Switch camera type",this)
+                .updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping(ActionDescriptor.INPUT_CAMERA_TYPE_FLY,"Switch to fly by camera",this)
+                .updateMapping(my3DGame.getInputManager()));
     }
     private void removeInputKeys() {
         my3DGame.getInputManager().removeListener(this);

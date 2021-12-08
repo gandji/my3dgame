@@ -4,8 +4,9 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.font.BitmapFont;
 import com.simsilica.lemur.GuiGlobals;
 import lombok.extern.log4j.Log4j;
+import org.gandji.my3dgame.keyboard.KeyboardHelpState;
 import org.gandji.my3dgame.states.FlyCamAppStateAzerty;
-import org.gandji.my3dgame.states.MenuAppState;
+import org.gandji.my3dgame.menu.MenuAppState;
 import org.gandji.my3dgame.states.My3DGameDebugKeysAppState;
 import org.gandji.my3dgame.states.My3DGameStatsAppState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class My3DGame extends SimpleApplication {
 
     @Autowired
     My3DGameAudioListenerState audioListenerState;
+
+    @Autowired
+    protected KeyboardHelpState keyboardHelpState;
 
     public ConfigurableApplicationContext configurableApplicationContext;
 

@@ -2,10 +2,8 @@ package org.gandji.my3dgame;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.Light;
 import com.jme3.material.Material;
@@ -20,17 +18,19 @@ import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.keyboard.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by gandji on 18/01/2020.
  */
 @Component
 @Slf4j
-public class My3DGameTerrain implements ActionListener {
+public class My3DGameTerrain {
 
     @Autowired
     My3DGame my3DGame;
@@ -50,7 +50,7 @@ public class My3DGameTerrain implements ActionListener {
     float dirtScale = 16;
     float rockScale = 128;
 
-    BitmapText hintText;
+    private List<Mapping> mappings = new ArrayList<>();
 
     enum TerrainGenerationType {
         HEIGHT_MAP,
@@ -79,7 +79,6 @@ public class My3DGameTerrain implements ActionListener {
         this.cam = my3DGame.getCamera();
         loadMaterials();
         loadScene();
-        bindMappings();
     }
 
     private void loadMaterials() {
@@ -184,71 +183,51 @@ public class My3DGameTerrain implements ActionListener {
         terrain.addLight(light);
     }
 
-    private void bindMappings() {
-        my3DGame.getInputManager().addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
-        my3DGame.getInputManager().addListener(this, "wireframe");
-        my3DGame.getInputManager().addMapping("triPlanar", new KeyTrigger(KeyInput.KEY_P));
-        my3DGame.getInputManager().addListener(this, "triPlanar");
-        my3DGame.getInputManager().addMapping("hint", new KeyTrigger(KeyInput.KEY_F1));
-        my3DGame.getInputManager().addListener(this, "hint");
+    public List<Mapping> setupKeys() {
 
-        hintText = new BitmapText(my3DGame.getGuiFont(), false);
-        hintText.setSize(my3DGame.getGuiFont().getCharSet().getRenderedSize());
-        hintText.setLocalTranslation(0, cam.getHeight(), 0);
-        hintText.setText("Hit T to switch to wireframe,  P to switch to tri-planar texturing");
+        mappings.add(new Mapping("<T>", "Switch to wireframe", KeyInput.KEY_T,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (!isPressed) {
+                    wireframe = !wireframe;
+                    if (wireframe) {
+                        terrain.setMaterial(matWire);
+                    } else {
+                        terrain.setMaterial(matRock);
+                    }                }})
+                .updateMapping(my3DGame.getInputManager()));
+
+        mappings.add(new Mapping("<P>", "Switch to tri-planar texturing", KeyInput.KEY_P,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (!isPressed) {
+                        triPlanar = !triPlanar;
+                        if (triPlanar) {
+                            matRock.setBoolean("useTriPlanarMapping", true);
+                            // planar textures don't use the mesh's texture coordinates but real world coordinates,
+                            // so we need to convert these texture coordinate scales into real world scales so it looks
+                            // the same when we switch to/from tri-planar mode
+                            matRock.setFloat("Tex1Scale", 1f / (float) (512f / grassScale));
+                            matRock.setFloat("Tex2Scale", 1f / (float) (512f / dirtScale));
+                            matRock.setFloat("Tex3Scale", 1f / (float) (512f / rockScale));
+                        } else {
+                            matRock.setBoolean("useTriPlanarMapping", false);
+                            matRock.setFloat("Tex1Scale", grassScale);
+                            matRock.setFloat("Tex2Scale", dirtScale);
+                            matRock.setFloat("Tex3Scale", rockScale);
+                        }
+                    }})
+                .updateMapping(my3DGame.getInputManager()));
+
+        return mappings;
     }
 
-    private void toggleHintText() {
-        if (my3DGame.getGuiNode().getChildren().contains(hintText)) {
-            my3DGame.getGuiNode().detachChild(hintText);
-        } else {
-            my3DGame.getGuiNode().attachChild(hintText);
+    public void disableKeys() {
+        for (Mapping mapping : mappings) {
+            mapping.remove(my3DGame.getInputManager());
         }
+        mappings.clear();
     }
 
     public TerrainQuad getTerrain() {
         return terrain;
-    }
-
-    public void setTerrain(TerrainQuad terrain) {
-        this.terrain = terrain;
-    }
-
-    public Light getLight() {
-        return light;
-    }
-
-    public void setLight(Light light) {
-        this.light = light;
-    }
-
-    @Override
-    public void onAction(String name, boolean pressed, float tpf) {
-        if (name.equals("wireframe") && !pressed) {
-            wireframe = !wireframe;
-            if (wireframe) {
-                terrain.setMaterial(matWire);
-            } else {
-                terrain.setMaterial(matRock);
-            }
-        } else if (name.equals("triPlanar") && !pressed) {
-            triPlanar = !triPlanar;
-            if (triPlanar) {
-                matRock.setBoolean("useTriPlanarMapping", true);
-                // planar textures don't use the mesh's texture coordinates but real world coordinates,
-                // so we need to convert these texture coordinate scales into real world scales so it looks
-                // the same when we switch to/from tri-planar mode
-                matRock.setFloat("Tex1Scale", 1f / (float) (512f / grassScale));
-                matRock.setFloat("Tex2Scale", 1f / (float) (512f / dirtScale));
-                matRock.setFloat("Tex3Scale", 1f / (float) (512f / rockScale));
-            } else {
-                matRock.setBoolean("useTriPlanarMapping", false);
-                matRock.setFloat("Tex1Scale", grassScale);
-                matRock.setFloat("Tex2Scale", dirtScale);
-                matRock.setFloat("Tex3Scale", rockScale);
-            }
-        } else if (name.equals("hint") && !pressed) {
-            toggleHintText();
-        }
     }
 }

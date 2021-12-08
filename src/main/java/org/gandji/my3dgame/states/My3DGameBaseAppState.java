@@ -12,8 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.gandji.my3dgame.My3DGame;
 import org.gandji.my3dgame.ferrari.FerrariGameState;
 import org.gandji.my3dgame.keyboard.Mapping;
+import org.gandji.my3dgame.keyboard.KeyboardHelpState;
+import org.gandji.my3dgame.menu.MenuAppState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public abstract class My3DGameBaseAppState extends BaseAppState implements ActionListener {
@@ -33,6 +38,9 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
     @Autowired
     protected MenuAppState menuAppState;
 
+    @Autowired
+    protected KeyboardHelpState keyboardHelpState;
+
     public enum CameraType {
         CHASE,
         NODE,
@@ -50,13 +58,12 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
             }
         }
     }
-    protected static String INPUT_CAMERA_TYPE = "Camera_Type";
-    protected static String INPUT_CAMERA_TYPE_FLY = "Camera_Type_Fly";
     CameraType cameraChaseType = CameraType.CHASE;
     CameraType oldCameraChaseType = CameraType.FLY;
     protected ChaseCamera chaseCamera;
     protected CameraNode cameraNode;
 
+    protected List<Mapping> mappings = new ArrayList<>();
 
     @Override
     protected void initialize(Application app) {
@@ -68,27 +75,54 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
     protected void onEnable() {
         my3DGame.getStateManager().attach(bulletAppState);
 
-        if (my3DGame.getInputManager() != null) {
-            new Mapping(SimpleApplication.INPUT_MAPPING_EXIT, "Exit", KeyInput.KEY_ESCAPE,
-                    (ActionListener) (name, isPressed, tpf) -> backToMenu())
-            .addToInputManager(my3DGame.getInputManager());
-        }
+        mappings.add(new Mapping(SimpleApplication.INPUT_MAPPING_EXIT, "Back to main menu", KeyInput.KEY_ESCAPE,
+                (ActionListener) (name, isPressed, tpf) -> backToMenu())
+                .updateMapping(my3DGame.getInputManager()));
+        new Mapping("<F1>", "Display Help", KeyInput.KEY_F1,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (!isPressed) {
+                        if (my3DGame.getStateManager().hasState(keyboardHelpState)) {
+                            log.debug("Base state detaching keyboard help");
+                            my3DGame.getStateManager().detach(keyboardHelpState);
+                        } else {
+                            log.debug("Base state attaching keyboard help");
+                            keyboardHelpState.clearMappingsHelp();
+                            keyboardHelpState.buildMappingsHelp(mappings);
+                            if (cameraChaseType==CameraType.FLY) {
+                                FlyCamAppStateAzerty flyCamState = my3DGame.getStateManager().getState(FlyCamAppStateAzerty.class);
+                                if (flyCamState!=null) {
+                                    keyboardHelpState.buildMappingsHelp(flyCamState.getMappings());
+                                }
+                            }
+                            my3DGame.getStateManager().attach(keyboardHelpState);
+                        }
+                    }
+                })
+                .updateMapping(my3DGame.getInputManager());
 
         updateCameraType();
     }
 
     @Override
     protected void onDisable() {
+
+        for (Mapping mapping : mappings) {
+            mapping.remove(my3DGame.getInputManager());
+        }
+        mappings.clear();
+
         my3DGame.getInputManager().deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
+        my3DGame.getInputManager().deleteMapping("<F1>");
 
         my3DGame.getRootNode().detachAllChildren();
         my3DGame.getStateManager().detach(bulletAppState);
+        my3DGame.getStateManager().detach(keyboardHelpState);
     }
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         // the camera controls
-        if (isPressed && name.equals(INPUT_CAMERA_TYPE)) {
+        if (isPressed && name.equals(ActionDescriptor.INPUT_CAMERA_TYPE.name)) {
             if (cameraChaseType != CameraType.FLY) {
                 cameraChaseType = cameraChaseType.next();
             } else {
@@ -96,7 +130,7 @@ public abstract class My3DGameBaseAppState extends BaseAppState implements Actio
             }
             updateCameraType();
         }
-        if (isPressed && name.equals(INPUT_CAMERA_TYPE_FLY)) {
+        if (isPressed && name.equals(ActionDescriptor.INPUT_CAMERA_TYPE_FLY.name)) {
             if (cameraChaseType != CameraType.FLY) {
                 oldCameraChaseType = cameraChaseType;
                 cameraChaseType = cameraChaseType.FLY;

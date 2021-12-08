@@ -4,12 +4,9 @@ import com.jme3.app.Application;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.input.CameraInput;
-import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
-import com.jme3.input.MouseInput;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseAxisTrigger;
 import lombok.extern.slf4j.Slf4j;
+import org.gandji.my3dgame.keyboard.Mapping;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,10 +20,12 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class FlyCamAppStateAzerty extends FlyCamAppState {
+public class FlyCamAppStateAzerty extends FlyCamAppState implements HasKeyMappings {
 
     Application app;
     AppStateManager stateManager;
+
+    List<Mapping> mappings = new ArrayList<>();
 
     public FlyCamAppStateAzerty() {
         super();
@@ -44,33 +43,27 @@ public class FlyCamAppStateAzerty extends FlyCamAppState {
         if (null != app.getInputManager()) {
             log.debug(String.format("update mappings"));
 
-            List<String> updatedMappings = new ArrayList<>();
+            mappings.clear();
 
-            updatedMappings.add(updateMapping(CameraInput.FLYCAM_FORWARD, KeyInput.KEY_Z));
-            updatedMappings.add(updateMapping(CameraInput.FLYCAM_LOWER, KeyInput.KEY_W));
-            updatedMappings.add(updateMapping(CameraInput.FLYCAM_STRAFELEFT, KeyInput.KEY_Q));
-            updatedMappings.add(updateMapping(CameraInput.FLYCAM_RISE, KeyInput.KEY_A));
-
-            updatedMappings.add(updateMapping(CameraInput.FLYCAM_UP,KeyInput.KEY_DOWN));
-            updatedMappings.add(updateMapping(CameraInput.FLYCAM_DOWN,KeyInput.KEY_UP));
-
-            int nMappings = updatedMappings.size();
-            // the listener is the camera
-            app.getInputManager().addListener(getCamera(), (String[]) updatedMappings.toArray(new String[nMappings]));
+            mappings.add(new Mapping(CameraInput.FLYCAM_FORWARD,"Fly cam forward", KeyInput.KEY_Z,getCamera()).updateMapping(app.getInputManager()));
+            mappings.add(new Mapping(CameraInput.FLYCAM_LOWER,"Fly cam lower", KeyInput.KEY_W,getCamera()).updateMapping(app.getInputManager()));
+            mappings.add(new Mapping(CameraInput.FLYCAM_STRAFELEFT,"Fly cam left", KeyInput.KEY_Q,getCamera()).updateMapping(app.getInputManager()));
+            mappings.add(new Mapping(CameraInput.FLYCAM_RISE,"Fly cam rise", KeyInput.KEY_A,getCamera()).updateMapping(app.getInputManager()));
+            mappings.add(new Mapping(CameraInput.FLYCAM_UP,"Fly cam look up", KeyInput.KEY_DOWN,getCamera()).updateMapping(app.getInputManager()));
+            mappings.add(new Mapping(CameraInput.FLYCAM_DOWN,"Fly cam look down", KeyInput.KEY_UP,getCamera()).updateMapping(app.getInputManager()));
         }
 
         getCamera().setMoveSpeed(10.f);
-    }
-
-    private String updateMapping(String input, int key) {
-        app.getInputManager().deleteMapping(input);
-        app.getInputManager().addMapping(input, new KeyTrigger(key));
-        return input;
     }
 
     @Override
     public void cleanup() {
         super.cleanup();
         log.debug("Cleaning up");
+    }
+
+    @Override
+    public List<Mapping> getMappings() {
+        return mappings;
     }
 }

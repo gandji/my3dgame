@@ -5,10 +5,8 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.VehicleControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.Light;
 import com.jme3.light.PointLight;
@@ -22,11 +20,13 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import org.gandji.my3dgame.My3DGame;
 import org.gandji.my3dgame.Utils;
+import org.gandji.my3dgame.keyboard.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by gandji on 18/01/2020.
@@ -58,6 +58,8 @@ public class Ferrari implements ActionListener {
     private float accelerationValue = 0;
 
     boolean assetsLoaded = false;
+
+    List<Mapping> mappings = new ArrayList<>();
 
     public Ferrari() {
     }
@@ -147,25 +149,51 @@ public class Ferrari implements ActionListener {
         assetsLoaded = true;
     }
 
-    public void setupKeys(InputManager inputManager) {
-        inputManager.addMapping("Lefts", new KeyTrigger(KeyInput.KEY_H));
-        inputManager.addMapping("Rights", new KeyTrigger(KeyInput.KEY_K));
-        inputManager.addMapping("Ups", new KeyTrigger(KeyInput.KEY_U));
-        inputManager.addMapping("Downs", new KeyTrigger(KeyInput.KEY_J));
-        inputManager.addMapping("Backs", new KeyTrigger(KeyInput.KEY_COMMA));
-        inputManager.addMapping("Space", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("Reset", new KeyTrigger(KeyInput.KEY_RETURN));
-        inputManager.addListener(this, "Lefts");
-        inputManager.addListener(this, "Rights");
-        inputManager.addListener(this, "Ups");
-        inputManager.addListener(this, "Downs");
-        inputManager.addListener(this, "Backs");
-        inputManager.addListener(this, "Space");
-        inputManager.addListener(this, "Reset");
+    public List<Mapping> setupKeys() {
+
+        mappings.add(new Mapping("<H>", "Steer left", KeyInput.KEY_H,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (isPressed) { steeringValue += .5f;}
+                    else { steeringValue -= .5f;}
+                    driver.steer(steeringValue);
+                }).updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<K>", "Steer right", KeyInput.KEY_K,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (isPressed) { steeringValue -= .5f;}
+                    else { steeringValue += .5f;}
+                    driver.steer(steeringValue);
+                }).updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<U>", "Throttle up", KeyInput.KEY_U,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (isPressed) { accelerationValue -= 800;}
+                    else { accelerationValue = 0;}
+                    driver.accelerate(accelerationValue);
+                    driver.setCollisionShape(CollisionShapeFactory.createDynamicMeshShape(Utils.findGeom(spatial,"Car")));
+                }).updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<J>", "Brake", KeyInput.KEY_J,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (isPressed) { driver.brake(40f);}
+                    else { driver.brake(0f);}
+                }).updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<,>", "Reverse", KeyInput.KEY_COMMA,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (isPressed) { accelerationValue += 500;}
+                    else { steeringValue = 0;}
+                    driver.accelerate(accelerationValue);
+                    driver.setCollisionShape(CollisionShapeFactory.createDynamicMeshShape(Utils.findGeom(spatial,"Car")));
+                }).updateMapping(my3DGame.getInputManager()));
+        mappings.add(new Mapping("<SPACE>", "Reset", KeyInput.KEY_SPACE,
+                (ActionListener) (name, isPressed, tpf) -> {
+                    if (isPressed) { resetPosition();}
+                }).updateMapping(my3DGame.getInputManager()));
+        return mappings;
     }
 
-    public void disableKeys(InputManager inputManager) {
-        inputManager.removeListener(this);
+    public void disableKeys() {
+        for (Mapping mapping : mappings) {
+            mapping.remove(my3DGame.getInputManager());
+        }
+        mappings.clear();
     }
 
     @Override
