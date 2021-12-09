@@ -30,11 +30,11 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * TODO display wireframes
- * TODO flicker when not finding path
+ * TODO flicker when not searching path
  * TODO configure + force recomputation of navmesh?
  * TODO redesign level: nav mesh is discontinuous
  * TODO shoot at zombie
+ * TODO use MotionPath.update() function (to be able to use spline paths)
  */
 @Component
 @Slf4j
@@ -247,6 +247,17 @@ public class TestQ3GameState extends My3DGameBaseAppState {
                 (ActionListener) (name, isPressed, tpf) ->
                         navControl.setTarget(playerNode.getWorldTranslation()))
                 .addToInputManager(my3DGame.getInputManager()));
+
+        mappings.add(new Mapping("<N>", "Toggle nav mesh", KeyInput.KEY_N,
+                (ActionListener) (name, isPressed, tpf) ->
+                {if (isPressed) {navMeshState.toggleMesh();}})
+                .addToInputManager(my3DGame.getInputManager()));
+
+        mappings.add(new Mapping("<B>", "Toggle Sinbad's path", KeyInput.KEY_B,
+                (ActionListener) (name, isPressed, tpf) ->
+                {if (isPressed) {navControl.toggleDisplayMotionPath();}})
+                .addToInputManager(my3DGame.getInputManager()));
+
     }
 
     private void clearInputKeys() {

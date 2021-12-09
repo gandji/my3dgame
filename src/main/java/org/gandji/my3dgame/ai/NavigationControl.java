@@ -49,17 +49,14 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
     private Spatial spatial;
     private boolean pathFinding;
     private Vector3f wayPosition;
-    private final boolean debug = true;
     private MotionPath motionPath;
     private boolean showPath;
     private Vector3f target;
 
     public NavigationControl(NavMesh navMesh) {
         super(navMesh); //sets the NavMesh for this control
-        if (debug) {
-            motionPath = new MotionPath();
-            motionPath.setPathSplineType(Spline.SplineType.Linear);
-        }
+        motionPath = new MotionPath();
+        motionPath.setPathSplineType(Spline.SplineType.Linear);
         executor = Executors.newScheduledThreadPool(1);
         startPathFinder();
     }
@@ -150,10 +147,6 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
             }
         } else if (!isPathFinding() && getNextWaypoint() != null
                 && !isAtGoalWaypoint()) {
-            if (showPath) {
-                showPath();
-                showPath = false;
-            }
             //advance to next waypoint
             goToNextWaypoint();
             setWayPosition(new Vector3f(getWaypointPosition()));
@@ -173,6 +166,19 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
             }
             pcControl.setAction(ListenerKey.MOVE_FORWARD, false, 1);
         }
+
+        if (!pathFinding && showPath) {
+            if (motionPath.getNbWayPoints() > 0) {
+                motionPath.enableDebugShape(my3DGame.getAssetManager(), my3DGame.getRootNode());
+            }
+        } else {
+            try {
+                motionPath.disableDebugShape();
+            } catch (NullPointerException e) {
+
+            }
+        }
+
     }
 
     @Override
@@ -198,6 +204,7 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
                 clearPath();
                 setWayPosition(null);
                 pathFinding = true;
+
                 //setPosition must be set before computePath is called.
                 setPosition(spatial.getWorldTranslation());
                 //*The first waypoint on any path is the one you set with
@@ -223,10 +230,8 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
                 if (success) {
                     //clear target if successful
                     target = null;
-                    if (debug) {
-                        //display motion path
-                        showPath = true;
-                    }
+                    //compute debug display motion path
+                    buildDebugPath();
                 }
                 pathFinding = false;
             }
@@ -280,16 +285,18 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
 
     //Displays a motion path showing each waypoint. Stays in scene until another
     //path is set.
-    private void showPath() {
+    private void buildDebugPath() {
         if (motionPath.getNbWayPoints() > 0) {
             motionPath.clearWayPoints();
-            motionPath.disableDebugShape();
         }
 
         for (Path.Waypoint wp : getPath().getWaypoints()) {
             motionPath.addWayPoint(wp.getPosition());
         }
-        motionPath.enableDebugShape(my3DGame.getAssetManager(), my3DGame.getRootNode());
+    }
+
+    public void toggleDisplayMotionPath() {
+        showPath = !showPath;
     }
 
     /**
@@ -297,7 +304,14 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
      */
     @Override
     public void setTarget(Vector3f target) {
+        motionPath.clearWayPoints();
+        try {
+            motionPath.disableDebugShape();
+        } catch (NullPointerException e) {
+            // it's ok, means motion path was not displayed
+        }
         this.target = target;
+
     }
 
 }

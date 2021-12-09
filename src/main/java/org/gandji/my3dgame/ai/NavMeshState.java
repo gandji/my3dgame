@@ -82,6 +82,8 @@ public class NavMeshState extends BaseAppState {
     boolean initialized = false;
     private String navMeshFileName = DataKey.NAVMESH;
 
+    private Geometry meshSpatial;
+
     @Override
     protected void initialize(Application app) {
         this.app = (SimpleApplication) app;
@@ -89,16 +91,20 @@ public class NavMeshState extends BaseAppState {
             return;
         }
 
-        Geometry geometry = maybeImportNavMesh(navMeshFileName);
+        maybeImportNavMesh(navMeshFileName);
 
-        if (geometry!= null) {
-            navMesh.loadFromMesh(geometry.getMesh());
-            showGeometry(geometry, ColorRGBA.Green);
-            saveNavMesh(geometry);
+        if (meshSpatial != null) {
+            navMesh.loadFromMesh(meshSpatial.getMesh());
         } else {
-            //generate NavMesh
+            //generate NavMesh and mesh spatial
             createNavMesh();
         }
+
+        // display nav mesh
+        if (meshSpatial != null) {
+            showMesh(ColorRGBA.Green);
+        }
+
         initialized = true;
     }
 
@@ -229,25 +235,15 @@ public class NavMeshState extends BaseAppState {
         Mesh optiMesh = generator.optimize(mesh);
         navMesh.loadFromMesh(optiMesh);
         
-        Geometry geom = new Geometry(DataKey.NAVMESH);
-        geom.setMesh(optiMesh);
+        meshSpatial = new Geometry(DataKey.NAVMESH);
+        meshSpatial.setMesh(optiMesh);
         //display the mesh
-        showGeometry(geom, ColorRGBA.Green);
-        //save the navmesh to Scenes/NavMesh for loading 
-        exportNavMesh(geom, navMeshFileName);
-        //save geom to rootNode if you wish
-        saveNavMesh(geom);
+        showMesh(ColorRGBA.Green);
+        //save the navmesh to Scenes/NavMesh for loading
+        exportNavMesh(meshSpatial, navMeshFileName);
     }
     
-    private void saveNavMesh(Geometry geom) {
-        Spatial previous = app.getRootNode().getChild(geom.getName());
-        if (previous != null) {
-            previous.removeFromParent();
-        }
-        app.getRootNode().attachChild(geom);
-    }
-
-    //Gathers all geometries in supplied node into supplied List. Uses 
+    //Gathers all geometries in supplied node into supplied List. Uses
     //NavMeshGenerator to merge found Terrain meshes into one geometry prior to 
     //adding. Scales and sets translation of merged geometry.
     private List<Geometry> findGeometries(Node node, List<Geometry> geoms,
@@ -274,18 +270,39 @@ public class NavMeshState extends BaseAppState {
     }
 
     //Displays the NavMesh for debugging.
-    private void showGeometry(Geometry geom, ColorRGBA color) {
+    private void showMesh(ColorRGBA color) {
         Material mat;
-        if (geom.getMaterial() == null) {
+        if (meshSpatial.getMaterial() == null) {
             mat = new Material(getApplication()
                     .getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-            geom.setMaterial(mat);
+            meshSpatial.setMaterial(mat);
         } else {
-            mat = geom.getMaterial();
+            mat = meshSpatial.getMaterial();
         }
         mat.setColor("Color", color);
         mat.getAdditionalRenderState().setWireframe(true);
-        geom.setCullHint(CullHint.Never);
+        meshSpatial.setCullHint(CullHint.Never);
+
+        Spatial previous = app.getRootNode().getChild(meshSpatial.getName());
+        if (previous != null) {
+            previous.removeFromParent();
+        }
+        app.getRootNode().attachChild(meshSpatial);
+    }
+
+    public void toggleMesh() {
+
+        if (meshSpatial==null) {
+            return;
+        }
+
+        Spatial previous = app.getRootNode().getChild(meshSpatial.getName());
+        if (previous != null) {
+            previous.removeFromParent();
+        } else {
+            app.getRootNode().attachChild(meshSpatial);
+        }
+
     }
 
     //Exports the NavMesh to user.home so you can load a saved NavMesh
@@ -299,10 +316,13 @@ public class NavMeshState extends BaseAppState {
         }
     }
 
-    private Geometry maybeImportNavMesh(String fileName) {
+    private void maybeImportNavMesh(String fileName) {
+
+        meshSpatial = null;
+
         File file = buildNavMeshFile(fileName);
         if ( !file.exists() || !file.canRead()) {
-            return null;
+            return;
         }
 
         /* hmmm, this loads from the resource dir */
@@ -317,13 +337,13 @@ public class NavMeshState extends BaseAppState {
             savable = importer.load(file);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            return;
         }
         if (!(savable instanceof Geometry)) {
             log.warn("Could not load a geometry from file "+file.getAbsolutePath());
-            return null;
+            return;
         }
-        return (Geometry) savable;
+        meshSpatial = (Geometry) savable;
     }
 
     private File buildNavMeshFile(String fileName) {
